@@ -3,19 +3,15 @@
 #include <iostream>
 #include <format>
 
+struct reg {
+	uint8_t data;
+};
 
 class c8080
 {
 public:
 	//Registers
-	uint8_t A = 0x00; //Accumulator 
-	uint8_t B = 0x00;
-	uint8_t C = 0x00;
-	uint8_t D = 0x00;
-	uint8_t E = 0x00;
-	uint8_t H = 0x00;
-	uint8_t L = 0x00;
-	uint8_t FLAGS = 0x00;
+	reg A, B, C, D, E, H, L, FLAGS;
 
 	//Memory
 	uint8_t mem[0xFFFF] = { 0x0000 }; //64KB of memory
@@ -26,8 +22,8 @@ public:
 	//program counter
 	uint16_t pc;
 
-	//instruction pointer
-	uint16_t ip;
+	//cycle counter
+	uint16_t cycles = 0x00;
 
 	//i/o devices
 	uint8_t inputDevices[0xFF] = { 0x00 };
@@ -36,11 +32,18 @@ public:
 	c8080() {
 		sp = 0x00;
 		pc = 0x00;
-		ip = 0x00;
+		A.data = 0x00;
+		B.data = 0x00;
+		C.data = 0x00;
+		D.data = 0x00;
+		E.data = 0x00;
+		H.data = 0x00;
+		L.data = 0x00;
+		FLAGS.data = 0x00;
 	}
 
 	int cycle();
-	void mov(uint8_t* f, uint8_t* s);
+	void mov(reg& f, reg& s);
 
 	//prints out all registers and current instruction
 	void stateUpdate();
