@@ -44,6 +44,7 @@ public:
 
 	int cycle();
 	void mov(reg& f, reg& s);
+	void mov(reg& f, uint8_t s);
 
 	//prints out all registers and current instruction
 	void stateUpdate();

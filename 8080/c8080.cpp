@@ -28,7 +28,8 @@ int c8080::cycle()
         break;
     case 0x05:
         break;
-    case 0x06:
+    case 0x06: //MVI B, D8
+        mov(B, mem[pc + 1]);
         break;
     case 0x07:
         break;
@@ -62,7 +63,8 @@ int c8080::cycle()
         break;
     case 0x15:
         break;
-    case 0x16:
+    case 0x16: //MVI D, D8
+        mov(D, mem[pc + 1]);
         break;
     case 0x17:
         break;
@@ -372,6 +374,15 @@ void c8080::mov(reg& f, reg& s)
 {
     f.data = s.data;
     pc++;
+    //increase cycle by one
+}
+
+//move immediate into register
+//uses [pc + 1], then increments pc by 2
+void c8080::mov(reg& f, uint8_t s)
+{
+    f.data = s;
+    pc += 2;
     //increase cycle by one
 }
 
