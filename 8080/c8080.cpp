@@ -11,8 +11,9 @@ int c8080::cycle()
 {
     uint8_t opcode = mem[pc];
     switch (opcode) {
-    //case 0x00:
-    //   break;
+    case 0x00: //nop
+        pc++;
+       break;
     case 0x01: //LXI B, D16
         //loads byte 2[pc + 1] into C and byte 3[pc + 2] into B
         //Increments pc by 2
@@ -20,10 +21,19 @@ int c8080::cycle()
         B.data = mem[pc + 2];
         pc += 2;
         break;
-    case 0x02:
+    case 0x02: //stax b
+        mem[(B.data << 8) | C.data] = A.data;
+        pc++;
         break;
-    case 0x03:
+    case 0x03: //inx B
+    {
+        uint16_t val = (B.data << 8) | C.data;
+        val += 1;
+        B.data = val >> 8;
+        C.data = val; //will be truncated 
+        pc++;
         break;
+    }
     case 0x04:
         break;
     case 0x05:
@@ -336,8 +346,8 @@ int c8080::cycle()
     case 0x75: //mov M, l
         mov(L, L);
         break;
-    case 0x76: //HLT
-        //TODO: Code Hlt functionality 
+    case 0x76: //HLT TODO: check on halt functionality
+        return -1; //break 
         break;
     case 0x77: //mov M, a
         mov(L, A);
@@ -472,6 +482,8 @@ int c8080::cycle()
         break;
     }
     stateUpdate();
+    if(stepMode)
+        system("pause");
     cycles++;
     return 0;
 }
@@ -595,7 +607,7 @@ void c8080::sub(reg& f, uint8_t s)
     pc++;
 }
 
-void c8080::sbb(reg& f, reg& s)
+void c8080::sbb(reg& f, reg& s) //TODO: the other emulator is giving carrie
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
@@ -655,6 +667,19 @@ int c8080::calculateParity(uint8_t f)
     return (onBits % 2) == 0 ? 1 : 0;
 }
 
+void c8080::loadProgram(uint16_t startAddr, std::string program)
+{
+    uint8_t memAddr = 0x00;
+    for (int i = 0; i < program.size(); i += 2) {
+        std::stringstream s;
+        s << program.at(i);
+        s << program.at(i + 1);
+        int value;
+        s >> std::hex >> value;
+        mem[memAddr++] = value ;
+    }
+}
+
 //takes a uint8_t and sets appropiate bit in flag if it is zero
 void c8080::setZeroFlag(uint8_t f)
 {
@@ -668,15 +693,31 @@ void c8080::setZeroFlag(uint8_t f)
 //The op argument is used to signify if this function is checking for AC flag with subtraction or addition
 void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
 {
-    if (op == ADD) {
+    bool enable = false; //set to true if the ac flag should be set
+    switch (op) {
+    case ADD:
         if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
-            FLAGS.data |= (uint8_t)pow(2, 3);
+            enable = true;
         }
-        return;
+        break;
+    case SUB:
+        if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
+            enable = true;
+        }
+        break;
     }
-    if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
+    if (enable)
         FLAGS.data |= (uint8_t)pow(2, 3);
-    }
+    //delete commented code once certain switch works
+    //if (op == ADD) {
+    //    if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
+    //        FLAGS.data |= (uint8_t)pow(2, 3);
+    //    }
+    //    return;
+    //}
+    //if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
+    //    FLAGS.data |= (uint8_t)pow(2, 3);
+    //}
 }
 
 //takes a uint8_t and sets appropiate bit in flag if the first bit is a sign bit
@@ -691,15 +732,31 @@ void c8080::setSignFlag(uint8_t f)
 //The op argument is used to signify if this function is checking for AC flag with subtraction or addition
 void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
 {
-    if (op == ADD) {
+    bool enable = false; //set to true if the carry flag should be set
+    switch (op) {
+    case ADD:
+        if (f + s + c > UINT8_MAX) {
+            enable = true;
+        }
+        break;
+    case SUB:
+        if (((f - s - c) >> 7) != ((f >> 7))) {
+            enable = true;
+        }
+        break;
+    }
+    if (enable)
+        FLAGS.data |= (uint8_t)pow(2, 7);
+    //remove this code once certain this method (switch) works
+ /*   if (op == ADD) {
         if (f + s + c > UINT8_MAX) {
             FLAGS.data |= (uint8_t)pow(2, 7);
         }
         return;
     }
-    if (f - s - c > UINT8_MAX) {
+    if (((f - s -c) >> 7 ) != ((f >> 7))) {
         FLAGS.data |= (uint8_t)pow(2, 7);
-    }
+    }*/
 }
 
 //takes a uint8_t and sets appropriate bit in flag to 1 if the parity of f is even, 0 otherwise

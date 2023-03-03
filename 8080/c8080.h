@@ -1,5 +1,7 @@
 #pragma once
-#include <stdint.h>
+#include <string>
+#include <sstream>
+#include <cstdlib>
 #include <iostream>
 #include <math.h>
 #include <format>
@@ -40,6 +42,10 @@ public:
 	uint8_t inputDevices[0xFF] = { 0x00 };
 	uint8_t outputDevices[0xFF] = { 0x00 };
 
+	//if stepMode is true the program will allow the user to step through it instruction by instruction
+	//if false the program runs without intervention unless a hlt instruction is reached
+	bool stepMode = false;
+
 	c8080() {
 		sp = 0x00;
 		pc = 0x00;
@@ -72,6 +78,8 @@ public:
 
 	int getFlagStatus(int i);
 	int calculateParity(uint8_t f);
+
+	void loadProgram(uint16_t startAddr, std::string program);
 
 	//flag set functions
 	void setZeroFlag(uint8_t f);
