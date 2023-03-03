@@ -45,7 +45,8 @@ int c8080::cycle()
         break;
     case 0x0d:
         break;
-    case 0x0e:
+    case 0x0e: //mvi c, D8
+        mov(C, mem[pc + 1]);
         break;
     case 0x0f:
         break;
@@ -80,7 +81,8 @@ int c8080::cycle()
         break;
     case 0x1d:
         break;
-    case 0x1e:
+    case 0x1e: //mvi E, D8
+        mov(E, mem[pc + 1]);
         break;
     case 0x1f:
         break;
@@ -98,7 +100,8 @@ int c8080::cycle()
         break;
     case 0x25:
         break;
-    case 0x26:
+    case 0x26: //mvi H, D8
+        mov(H, mem[pc + 1]);
         break;
     case 0x27:
         break;
@@ -114,7 +117,8 @@ int c8080::cycle()
         break;
     case 0x2d:
         break;
-    case 0x2e:
+    case 0x2e: //mvi L, D8
+        mov(L, mem[pc + 1]);
         break;
     case 0x2f:
         break;
@@ -132,7 +136,9 @@ int c8080::cycle()
         break;
     case 0x35:
         break;
-    case 0x36:
+    case 0x36: //mvi m, D8
+        mem[getM()] = mem[pc + 1];
+        pc += 2;
         break;
     case 0x37:
         break;
@@ -148,7 +154,8 @@ int c8080::cycle()
         break;
     case 0x3d:
         break;
-    case 0x3e:
+    case 0x3e: //mvi A, D8
+        mov(A, mem[pc + 1]);
         break;
     case 0x3f:
         break;
@@ -172,7 +179,7 @@ int c8080::cycle()
         mov(B, L);
         break;
     case 0x46: //mov b, m(HL)
-        B.data = ((H.data << 8) | L.data) ;
+        B.data = mem[((H.data << 8) | L.data)];
         pc++;
         break;
     case 0x47: //mov b, a
@@ -197,7 +204,7 @@ int c8080::cycle()
         mov(C, L);
         break;
     case 0x4e: //mov c, m(HL)
-        C.data = ((H.data << 8) | L.data);
+        C.data = mem[((H.data << 8) | L.data)];
         pc++;
         break;
     case 0x4f: //mov c , a
@@ -224,7 +231,7 @@ int c8080::cycle()
         mov(D, L);
         break;
     case 0x56: //mov d, m(HL)
-        D.data = ((H.data << 8) | L.data);
+        D.data = mem[((H.data << 8) | L.data)];
         pc++;
         break;
     case 0x57: //mov d, a
@@ -249,7 +256,7 @@ int c8080::cycle()
         mov(E, L);
         break;
     case 0x5e: //mov e, m(HL)
-        E.data = ((H.data << 8) | L.data);
+        E.data = mem[((H.data << 8) | L.data)];
         pc++;
         break;
     case 0x5f: //mov e , a
@@ -276,7 +283,7 @@ int c8080::cycle()
         mov(H, L);
         break;
     case 0x66: //mov h, m(HL)
-        H.data = ((H.data << 8) | L.data);
+        H.data = mem[((H.data << 8) | L.data)];
         pc++;
         break;
     case 0x67: //mov h, a
@@ -301,7 +308,7 @@ int c8080::cycle()
         mov(L, L);
         break;
     case 0x6e: //mov l, m(HL)
-        L.data = ((H.data << 8) | L.data);
+        L.data = mem[((H.data << 8) | L.data)];
         pc++;
         break;
     case 0x6f: //mov l , a
@@ -354,11 +361,16 @@ int c8080::cycle()
         mov(A, L);
         break;
     case 0x7e: //mov a, m(HL)
-        A.data = ((H.data << 8) | L.data);
+        A.data = mem[((H.data << 8) | L.data)];
         pc++;
         break;
     case 0x7f: //mov a , a
         mov(A, A);
+        break;
+
+    //0x80 - 0x8f
+    case 0x80:
+        add(A, B);
         break;
     default:
         return -1;
@@ -383,8 +395,98 @@ void c8080::mov(reg& f, uint8_t s)
 {
     f.data = s;
     pc += 2;
-    //increase cycle by one
+    //TODO: increase cycle by one
 }
+
+//Adds two registers together, setting appropriate flags 
+//TODO: check on if ac flag is correct
+void c8080::add(reg& f, reg& s)
+{
+    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
+    FLAGS.data = 0x00;  //clear flags
+
+    setCarryFlag(f.data, s.data);
+    setACFlag(f.data, s.data);
+
+    f.data += s.data; //add numbers
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+//returns the value of a flag(denoted by i)
+//Below are the values i for certain flags
+//  0. sign
+//  1. zero
+//  3. AC
+//  5. Parity
+//  7. Carry
+int c8080::getFlagStatus(int i)
+{
+    return (FLAGS.data & (0x00 | (uint8_t)pow(2, i))) >> i;
+}
+
+//returns 1 for even parity, 0 for odd parity
+int c8080::calculateParity(uint8_t f)
+{
+    int onBits = 0;
+    for (int i = 0; i < 8; i++) {
+        if ((f >> i) & i) {
+            onBits++;
+        }
+    }
+    return (onBits % 2) == 0 ? 1 : 0;
+}
+
+//takes a uint8_t and sets appropiate bit in flag if it is zero
+void c8080::setZeroFlag(uint8_t f)
+{
+    if (f == 0) {
+        FLAGS.data |= (uint8_t)pow(2, 1);
+    }
+}
+
+//takes two uint8_t variables, f and s, and sets appropiate bit in flag if their is a carry from low nibble to high nibble in the result
+//of their sum
+void c8080::setACFlag(uint8_t f, uint8_t s)
+{
+    if (((f + s) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
+        FLAGS.data |= (uint8_t)pow(2, 3);
+    }
+}
+
+//takes a uint8_t and sets appropiate bit in flag if the first bit is a sign bit
+void c8080::setSignFlag(uint8_t f)
+{
+    if (f >> 7) {
+        FLAGS.data |= (uint8_t)pow(2, 0);
+    }
+}
+
+//takes two uint8_t, f and s, and sets appropriate bit in flag if their sum produces a carry
+void c8080::setCarryFlag(uint8_t f, uint8_t s)
+{
+    if (f + s > UINT8_MAX) {
+        FLAGS.data |= (uint8_t)pow(2, 7);
+    }
+}
+
+//takes a uint8_t and sets appropriate bit in flag to 1 if the parity of f is even, 0 otherwise
+void c8080::setParityFlag(uint8_t f)
+{
+    if (calculateParity(f)) {
+        FLAGS.data |= (uint8_t)pow(2, 5);
+    }
+}
+
+//returns the value given by H << 8 | L 
+uint16_t c8080::getM()
+{
+    return ((H.data << 8) | L.data);
+}
+
 
 //outputs the status of all registers 
 void c8080::stateUpdate() {
@@ -394,7 +496,12 @@ void c8080::stateUpdate() {
         " C: " << std::format("{:#x}", C.data) << " D: " << std::format("{:#x}", D.data) << " E: " << std::format("{:#x}", E.data) <<
         " H: " << std::format("{:#x}", H.data) << " L: " << std::format("{:#x}", L.data)
         << std::endl;
-    std::cout << "FLAGS: " << std::format("{:#x}", FLAGS.data) << std::endl;
+    std::cout << 
+                "FLAGS: S: " << std::format("{:#x}", getFlagStatus(0)) <<
+                " Z: " << std::format("{:#x}", getFlagStatus(1)) <<
+                " AC: " << std::format("{:#x}", getFlagStatus(3)) << 
+                " P: " << std::format("{:#x}", getFlagStatus(5)) <<
+                " C: " << std::format("{:#x}", getFlagStatus(7)) << std::endl;
     std::cout <<
         "Current Instruction: " << std::format("{:#x}", mem[pc]) << "   " <<
         "Current Stack: " << std::format("{:#x}", mem[sp])

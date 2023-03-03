@@ -1,12 +1,18 @@
 #pragma once
 #include <stdint.h>
 #include <iostream>
+#include <math.h>
 #include <format>
 
 struct reg {
 	uint8_t data;
 };
 
+//For this implementation of the 8080 the following is assumed to be true:
+//	1. Program memory begins at 0x00
+//	2. The stack pointer (can) be placed in program memory, to do this is a fatal mistake. The stack pointer (should) be placed after program
+//		memory. This particular implementation makes use of a varialbe, programEnd, which denotes the value in memory that contains the last
+//		program instruction. As such, a logical statck pointer placement is anywhere in the range [programEnd + 1, 0xFF]
 class c8080
 {
 public:
@@ -21,6 +27,9 @@ public:
 
 	//program counter
 	uint16_t pc;
+
+	//program end tells the emulator where the last program instruction is, this is set by loadProgram
+	uint16_t programEnd; 
 
 	//cycle counter
 	uint16_t cycles = 0x00;
@@ -43,8 +52,23 @@ public:
 	}
 
 	int cycle();
+
 	void mov(reg& f, reg& s);
 	void mov(reg& f, uint8_t s);
+
+	void add(reg& f, reg& s);
+
+	int getFlagStatus(int i);
+	int calculateParity(uint8_t f);
+
+	//flag set functions
+	void setZeroFlag(uint8_t f);
+	void setACFlag(uint8_t f, uint8_t s);
+	void setSignFlag(uint8_t f);
+	void setCarryFlag(uint8_t f, uint8_t s);
+	void setParityFlag(uint8_t f);
+
+	uint16_t getM();
 
 	//prints out all registers and current instruction
 	void stateUpdate();
