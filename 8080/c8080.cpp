@@ -372,6 +372,101 @@ int c8080::cycle()
     case 0x80:
         add(A, B);
         break;
+    case 0x81:
+        add(A, C);
+        break;
+    case 0x82:
+        add(A, D);
+        break;
+    case 0x83:
+        add(A, E);
+        break;
+    case 0x84:
+        add(A, H);
+        break;
+    case 0x85:
+        add(A, L);
+        break;
+    case 0x86: //TODO: test this function
+        add(A, mem[getM()]);
+        break;
+    case 0x87:
+        add(A, A);
+        break;
+    case 0x88:
+        adc(A, B);
+        break;
+    case 0x89:
+        adc(A, C);
+        break;
+    case 0x8a:
+        adc(A, D);
+        break;
+    case 0x8b:
+        adc(A, E);
+        break;
+    case 0x8c:
+        adc(A, H);
+        break;
+    case 0x8d:
+        adc(A, L);
+        break;
+    case 0x8e://TODO: test this one functionality 
+        adc(A, mem[getM()]);
+        break;
+    case 0x8f:
+        adc(A, A);
+        break;
+
+    //0x90 - 0x9f
+    case 0x90:
+        sub(A, B);
+        break;
+    case 0x91:
+        sub(A, C);
+        break;
+    case 0x92:
+        sub(A, D);
+        break;
+    case 0x93:
+        sub(A, E);
+        break;
+    case 0x94:
+        sub(A, H);
+        break;
+    case 0x95:
+        sub(A, L);
+        break;
+    case 0x96: //TODO: look into why this set a carry in other emulator but not mine
+        sub(A, mem[getM()]);
+        break;
+    case 0x97:
+        sub(A, A);
+        break;
+    case 0x98:
+        sbb(A, B);
+        break;
+    case 0x99:
+        sbb(A, C);
+        break;
+    case 0x9a:
+        sbb(A, D);
+        break;
+    case 0x9b:
+        sbb(A, E);
+        break;
+    case 0x9c:
+        sbb(A, H);
+        break;
+    case 0x9d:
+        sbb(A, L);
+        break;
+    case 0x9e: //TODO: look into why this set a carry in other emulator but not mine
+        sbb(A, mem[getM()]);
+        break;
+    case 0x9f:
+        sbb(A, A);
+        break;
     default:
         return -1;
         break;
@@ -416,6 +511,126 @@ void c8080::add(reg& f, reg& s)
     pc++;
 }
 
+void c8080::add(reg& f, uint8_t s)
+{
+    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
+    FLAGS.data = 0x00;  //clear flags
+
+    setCarryFlag(f.data, s);
+    setACFlag(f.data, s);
+
+    f.data += s; //add numbers
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::adc(reg& f, reg& s)
+{
+    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
+    uint8_t carryData = getFlagStatus(7); //store carry data
+
+    FLAGS.data = 0x00; //clear flags
+
+    setCarryFlag(f.data, s.data, carryData);
+    setACFlag(f.data, s.data, carryData);
+
+    f.data += s.data + carryData; //add numbers
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::adc(reg& f, uint8_t s)
+{
+    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
+    uint8_t carryData = getFlagStatus(7); //store carry data
+
+    FLAGS.data = 0x00; //clear flags
+
+    setCarryFlag(f.data, s, carryData);
+    setACFlag(f.data, s, carryData);
+
+    f.data += s + carryData; //add numbers
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::sub(reg& f, reg& s)
+{
+    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
+    FLAGS.data = 0x00;  //clear flags
+
+    setCarryFlag(f.data, s.data, 0, SUB);
+    setACFlag(f.data, s.data, 0, SUB);
+
+    f.data -= s.data; //add numbers
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::sub(reg& f, uint8_t s)
+{
+    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
+    FLAGS.data = 0x00;  //clear flags
+
+    setCarryFlag(f.data, s, 0, SUB);
+    setACFlag(f.data, s, 0, SUB);
+
+    f.data -= s; //add numbers
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::sbb(reg& f, reg& s)
+{
+    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
+    uint8_t carryData = getFlagStatus(7); //store carry data
+
+    FLAGS.data = 0x00; //clear flags 
+
+    setCarryFlag(f.data, s.data, carryData, SUB);
+    setACFlag(f.data, s.data, carryData, SUB);
+
+    f.data -= (s.data + carryData); //add numbers
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::sbb(reg& f, uint8_t s)
+{
+    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
+    uint8_t carryData = getFlagStatus(7); //store carry data
+
+    FLAGS.data = 0x00; //clear flags 
+
+    setCarryFlag(f.data, s, carryData, SUB);
+    setACFlag(f.data, s, carryData, SUB);
+
+    f.data -= (s + carryData); //add numbers
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
 //returns the value of a flag(denoted by i)
 //Below are the values i for certain flags
 //  0. sign
@@ -433,7 +648,7 @@ int c8080::calculateParity(uint8_t f)
 {
     int onBits = 0;
     for (int i = 0; i < 8; i++) {
-        if ((f >> i) & i) {
+        if ((f >> i) & 0x01) {
             onBits++;
         }
     }
@@ -450,9 +665,16 @@ void c8080::setZeroFlag(uint8_t f)
 
 //takes two uint8_t variables, f and s, and sets appropiate bit in flag if their is a carry from low nibble to high nibble in the result
 //of their sum
-void c8080::setACFlag(uint8_t f, uint8_t s)
+//The op argument is used to signify if this function is checking for AC flag with subtraction or addition
+void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
 {
-    if (((f + s) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
+    if (op == ADD) {
+        if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
+            FLAGS.data |= (uint8_t)pow(2, 3);
+        }
+        return;
+    }
+    if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
         FLAGS.data |= (uint8_t)pow(2, 3);
     }
 }
@@ -466,9 +688,16 @@ void c8080::setSignFlag(uint8_t f)
 }
 
 //takes two uint8_t, f and s, and sets appropriate bit in flag if their sum produces a carry
-void c8080::setCarryFlag(uint8_t f, uint8_t s)
+//The op argument is used to signify if this function is checking for AC flag with subtraction or addition
+void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
 {
-    if (f + s > UINT8_MAX) {
+    if (op == ADD) {
+        if (f + s + c > UINT8_MAX) {
+            FLAGS.data |= (uint8_t)pow(2, 7);
+        }
+        return;
+    }
+    if (f - s - c > UINT8_MAX) {
         FLAGS.data |= (uint8_t)pow(2, 7);
     }
 }

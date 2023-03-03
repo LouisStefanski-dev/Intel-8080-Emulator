@@ -4,6 +4,8 @@
 #include <math.h>
 #include <format>
 
+enum operation{ ADD, SUB };
+
 struct reg {
 	uint8_t data;
 };
@@ -57,15 +59,25 @@ public:
 	void mov(reg& f, uint8_t s);
 
 	void add(reg& f, reg& s);
+	void add(reg& f, uint8_t s);
+
+	void adc(reg& f, reg& s);
+	void adc(reg& f, uint8_t s);
+
+	void sub(reg& f, reg& s);
+	void sub(reg& f, uint8_t s);
+
+	void sbb(reg& f, reg& s);
+	void sbb(reg& f, uint8_t s);
 
 	int getFlagStatus(int i);
 	int calculateParity(uint8_t f);
 
 	//flag set functions
 	void setZeroFlag(uint8_t f);
-	void setACFlag(uint8_t f, uint8_t s);
+	void setACFlag(uint8_t f, uint8_t s, uint8_t c = 0, operation op = ADD);
 	void setSignFlag(uint8_t f);
-	void setCarryFlag(uint8_t f, uint8_t s);
+	void setCarryFlag(uint8_t f, uint8_t s, uint8_t c = 0, operation op = ADD);
 	void setParityFlag(uint8_t f);
 
 	uint16_t getM();
