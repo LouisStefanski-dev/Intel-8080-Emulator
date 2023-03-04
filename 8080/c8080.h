@@ -12,6 +12,9 @@
 //	S | Z | 0 | A | 0 | P | 1 | C |
 //--------------------------------+
 
+//NOTE on flags register: The current get[flag] functions assume the flags register is reset using
+//	resetFlags() before being called. As such when the function would normally clear a flag bit
+//	it instead ignores it and returns without changing any flag bits.
 
 enum operation{ ADD, SUB, AND, OR, XOR};
 
@@ -91,12 +94,17 @@ public:
 	void ora(reg& f, reg& s);
 	void ora(reg& f, uint8_t s);
 
+	void inr(reg& f);
+
+	void nop();
+
 	int getFlagStatus(int i);
 	int calculateParity(uint8_t f);
 
 	void loadProgram(uint16_t startAddr, std::string program);
 
 	//flag set functions
+	//All flags that are affected by carry support the inclusion of a carry bit by the uint8_t value c
 	void setZeroFlag(uint8_t f);
 	void setACFlag(uint8_t f, uint8_t s, uint8_t c = 0, operation op = ADD);
 	void setSignFlag(uint8_t f);

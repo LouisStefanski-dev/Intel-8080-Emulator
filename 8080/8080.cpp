@@ -6,10 +6,14 @@
 //      2. Look into when carry flag is (actually) set
 //      3. Fix AC flag
 //      4. fix 0x77 and similar mov instructions which mov a value into M
+//      5. Technically and, or, and xor set the carry and ac flags to zero. Maybe implement setting of flags rather than
+//          relying on them being cleared before
+//      6. work on carry flag and ac flag
+//results in a carry flag when a number is subtracted from itself, maybe do a check for it with an if statement
 int main()
 {
     c8080 my8080;
-    std::string program = "3E19060AA0AE317C0106F080B6070776";
+    std::string program = "3E3E06C89013333201000C76";
     //load program into memory
     my8080.loadProgram(0x0000, program);
     my8080.stepMode = false;

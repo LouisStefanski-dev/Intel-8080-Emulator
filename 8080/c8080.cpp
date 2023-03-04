@@ -12,7 +12,7 @@ int c8080::cycle()
     uint8_t opcode = mem[pc];
     switch (opcode) {
     case 0x00: //nop
-        pc++;
+        nop();
         break;
     case 0x01: //LXI B, D16
         //loads byte 2[pc + 1] into C and byte 3[pc + 2] into B
@@ -43,7 +43,7 @@ int c8080::cycle()
         break;
     case 0x07: //rlc 
     {
-        FLAGS.data |= ((A.data & 0x80) >> 7); //set carry flag
+        FLAGS.data |= ((A.data & 0x80) >> 7); //set carry flag to MSB of accumulator 
         uint16_t res = A.data << 1; //result of bitshift left
         uint16_t msb = res & 0x100; //isolate MSB after shl
         res |= (msb >> 8); //incorporate msb into original result
@@ -52,6 +52,7 @@ int c8080::cycle()
         break;
     }
     case 0x08:
+        nop();
         break;
     case 0x09:
         break;
@@ -59,7 +60,8 @@ int c8080::cycle()
         break;
     case 0x0b:
         break;
-    case 0x0c:
+    case 0x0c: //inr c
+        inr(C);
         break;
     case 0x0d:
         break;
@@ -71,16 +73,26 @@ int c8080::cycle()
 
     //0x10 - 0x1f
     case 0x10:
+        nop();
         break;
     case 0x11: //lxi d, d16
         E.data = mem[pc + 1];
         D.data = mem[pc + 2];
         pc += 3;
         break;
-    case 0x12:
+    case 0x12: //stax d
+        mem[(D.data << 8) | E.data] = A.data;
+        pc++;
         break;
-    case 0x13:
+    case 0x13: //inx d
+    {
+        uint16_t val = (D.data << 8) | E.data;
+        val += 1;
+        D.data = val >> 8;
+        E.data = val; //will be truncated 
+        pc++;
         break;
+    }
     case 0x14:
         break;
     case 0x15:
@@ -91,6 +103,7 @@ int c8080::cycle()
     case 0x17:
         break;
     case 0x18:
+        nop();
         break;
     case 0x19:
         break;
@@ -110,16 +123,30 @@ int c8080::cycle()
 
     //0x20 - 0x2f
     case 0x20:
+        nop();
         break;
     case 0x21: //lxi h, d16
         L.data = mem[pc + 1];
         H.data = mem[pc + 2];
         pc += 3;
         break;
-    case 0x22:
+    case 0x22: //shld, a16 //NOTE: check on this functionality 
+    {
+        uint16_t addr = (mem[pc + 2] << 8) | mem[pc + 1];
+        mem[addr] = L.data;
+        mem[addr + 1] = H.data;
+        pc += 3;
         break;
-    case 0x23:
+    }
+    case 0x23: //inx h
+    {
+        uint16_t val = (H.data << 8) | L.data;
+        val += 1;
+        H.data = val >> 8;
+        L.data = val; //will be truncated 
+        pc++;
         break;
+    }
     case 0x24:
         break;
     case 0x25:
@@ -130,6 +157,7 @@ int c8080::cycle()
     case 0x27:
         break;
     case 0x28:
+        nop();
         break;
     case 0x29:
         break;
@@ -149,16 +177,23 @@ int c8080::cycle()
 
     //0x30 - 0x3f
     case 0x30:
+        nop();
         break;
     case 0x31: //lxi sp, d16
         sp = mem[pc + 2] << 8;
         sp |= mem[pc + 1];
         pc += 3;
         break;
-    case 0x32:
+    case 0x32: //sta a16
+        mem[(mem[pc + 2] << 8) | mem[pc + 1]] = A.data;
+        pc += 3;
         break;
-    case 0x33:
+    case 0x33: //inx sp
+    {
+        sp += 1;
+        pc++;
         break;
+    }
     case 0x34:
         break;
     case 0x35:
@@ -170,6 +205,7 @@ int c8080::cycle()
     case 0x37:
         break;
     case 0x38:
+        nop();
         break;
     case 0x39:
         break;
@@ -813,6 +849,22 @@ void c8080::ora(reg& f, uint8_t s)
     pc++;
 }
 
+void c8080::inr(reg& f)
+{
+    resetFlags();
+    setACFlag(f.data, 0, 0, ADD);
+    f.data += 1;
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::nop()
+{
+    pc++;
+}
+
 //returns the value of a flag(denoted by i)
 //Below are the values i for certain flags
 //  7. sign
@@ -867,17 +919,19 @@ void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
     bool enable = false; //set to true if the ac flag should be set
     switch (op) {
     case ADD:
-        if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
+    {
+        if ((f & 0x10) != ((f + s + c) & 0x10)) {
             enable = true;
         }
         break;
+    }
     case SUB:
-        if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
+        if ((f & 0x10) != ((f - s - c) & 0x10)) {
             enable = true;
         }
         break;
     case AND:
-        //TODO: do logic here
+        //this does nothing
         break;
     case XOR:
         //TODO: do logic here
@@ -888,16 +942,6 @@ void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
     }
     if (enable)
         FLAGS.data |= (uint8_t)pow(2, 4);
-    //delete commented code once certain switch works
-    //if (op == ADD) {
-    //    if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
-    //        FLAGS.data |= (uint8_t)pow(2, 3);
-    //    }
-    //    return;
-    //}
-    //if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
-    //    FLAGS.data |= (uint8_t)pow(2, 3);
-    //}
 }
 
 //takes a uint8_t and sets appropiate bit in flag if the first bit is a sign bit
@@ -922,39 +966,26 @@ void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
         }
         break;
     case SUB:
-        if (((f - s - c) >> 7) != ((f >> 7))) {
+    {
+        //Carry flag is set for subtraction if the twos comliment of the subtraction does not produce a carry 
+        //Current works for all values tested besides a number minus itself
+        if ((((~(f - s - c)) + 1) & 0x100) != 0x100) {
             enable = true;
         }
         break;
+    }
     case AND:
-        if ((f >> 7) != ((f & s) >> 7)) {
-            enable = true;
-        }
+        //does not set
         break;
     case XOR:
-        if ((f >> 7) != ((f ^ s) >> 7)) {
-            enable = true;
-        }
+        //dooes not set
         break;
     case OR:
-        if ((f >> 7) != ((f | s) >> 7)) {
-            enable = true;
-        }
+        //does not set
         break;
     }
     if (enable)
         FLAGS.data |= 0x01;
-    uint8_t b = 0;
-    //remove this code once certain this method (switch) works
- /*   if (op == ADD) {
-        if (f + s + c > UINT8_MAX) {
-            FLAGS.data |= (uint8_t)pow(2, 7);
-        }
-        return;
-    }
-    if (((f - s -c) >> 7 ) != ((f >> 7))) {
-        FLAGS.data |= (uint8_t)pow(2, 7);
-    }*/
 }
 
 //takes a uint8_t and sets appropriate bit in flag to 1 if the parity of f is even, 0 otherwise
