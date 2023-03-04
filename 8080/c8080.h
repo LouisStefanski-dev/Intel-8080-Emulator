@@ -6,7 +6,7 @@
 #include <math.h>
 #include <format>
 
-enum operation{ ADD, SUB, AND };
+enum operation{ ADD, SUB, AND, OR, XOR};
 
 struct reg {
 	uint8_t data;
@@ -77,6 +77,9 @@ public:
 
 	void ana(reg& f, reg& s);
 	void ana(reg& f, uint8_t s);
+
+	void xra(reg& f, reg& s);
+	void xra(reg& f, uint8_t s);
 
 	int getFlagStatus(int i);
 	int calculateParity(uint8_t f);

@@ -489,6 +489,51 @@ int c8080::cycle()
     case 0xa0: //ana b
         ana(A, B);
         break;
+    case 0xa1: //ana c
+        ana(A, C);
+        break;
+    case 0xa2: //ana d
+        ana(A, D);
+        break;
+    case 0xa3: //ana e
+        ana(A, E);
+        break;
+    case 0xa4: //ana h
+        ana(A, H);
+        break;
+    case 0xa5: //ana l
+        ana(A, L);
+        break;
+    case 0xa6: //ana m //TODO: test this
+        ana(A, mem[getM()]);
+        break;
+    case 0xa7: //ana a
+        ana(A, A);
+        break;
+    case 0xa8: //xra b
+        xra(A, B);
+        break;
+    case 0xa9: //xra c
+        xra(A, C);
+        break;
+    case 0xaa: //xra d
+        xra(A, D);
+        break;
+    case 0xab: //xra e
+        xra(A, E);
+        break;
+    case 0xac: //xra h
+        xra(A, H);
+        break;
+    case 0xad: //xra l
+        xra(A, L);
+        break;
+    case 0xae: //xra m
+        xra(A, mem[getM()]);
+        break;
+    case 0xaf: //xra a
+        xra(A, A);
+        break;
     default:
         return -1;
         break;
@@ -670,6 +715,51 @@ void c8080::ana(reg& f, reg& s)
     pc++;
 }
 
+void c8080::ana(reg& f, uint8_t s)
+{
+    FLAGS.data = 0x00; //clear flags
+
+    setCarryFlag(f.data, s, 0, AND);
+    setACFlag(f.data, s, 0, AND);
+
+    f.data &= s;
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::xra(reg& f, reg& s)
+{
+    FLAGS.data = 0x00; //clear flags
+
+    setCarryFlag(f.data, s.data, 0, XOR);
+    setACFlag(f.data, s.data, 0, XOR);
+
+    f.data ^= s.data;
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::xra(reg& f, uint8_t s)
+{
+    FLAGS.data = 0x00; //clear flags
+
+    setCarryFlag(f.data, s, 0, XOR);
+    setACFlag(f.data, s, 0, XOR);
+
+    f.data ^= s;
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
 //returns the value of a flag(denoted by i)
 //Below are the values i for certain flags
 //  0. sign
@@ -735,6 +825,9 @@ void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
     case AND:
         //TODO: do logic here
         break;
+    case XOR:
+        //TODO: do logic here
+        break;
     }
     if (enable)
         FLAGS.data |= (uint8_t)pow(2, 3);
@@ -776,6 +869,11 @@ void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
         break;
     case AND:
         if ((f >> 7) != ((f & s) >> 7)) {
+            enable = true;
+        }
+        break;
+    case XOR:
+        if ((f >> 7) != ((f ^ s) >> 7)) {
             enable = true;
         }
         break;
