@@ -13,7 +13,7 @@ int c8080::cycle()
     switch (opcode) {
     case 0x00: //nop
         pc++;
-       break;
+        break;
     case 0x01: //LXI B, D16
         //loads byte 2[pc + 1] into C and byte 3[pc + 2] into B
         //Increments pc by 2
@@ -41,8 +41,16 @@ int c8080::cycle()
     case 0x06: //MVI B, D8
         mov(B, mem[pc + 1]);
         break;
-    case 0x07:
+    case 0x07: //rlc 
+    {
+        FLAGS.data |= (A.data & 0x80); //set carry flag
+        uint16_t res = A.data << 1; //result of bitshift left
+        uint16_t msb = res & 0x100; //isolate MSB after shl
+        res |= (msb >> 8); //incorporate msb into original result
+        A.data = res; //truncates value to 8 bit 
+        pc++;
         break;
+    }
     case 0x08:
         break;
     case 0x09:
@@ -350,6 +358,7 @@ int c8080::cycle()
         return -1; //break 
         break;
     case 0x77: //mov M, a
+        //TODO fix this functionality for all onces like this, this seems to be the only one but make sure
         mov(L, A);
         break;
     case 0x78: //mov a, b
@@ -476,6 +485,9 @@ int c8080::cycle()
         break;
     case 0x9f:
         sbb(A, A);
+        break;
+    case 0xa0: //ana b
+        ana(A, B);
         break;
     default:
         return -1;
@@ -643,6 +655,21 @@ void c8080::sbb(reg& f, uint8_t s)
     pc++;
 }
 
+void c8080::ana(reg& f, reg& s)
+{
+    FLAGS.data = 0x00; //clear flags
+
+    setCarryFlag(f.data, s.data, 0, AND);
+    setACFlag(f.data, s.data, 0, AND);
+
+    f.data &= s.data;
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
 //returns the value of a flag(denoted by i)
 //Below are the values i for certain flags
 //  0. sign
@@ -705,6 +732,9 @@ void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
             enable = true;
         }
         break;
+    case AND:
+        //TODO: do logic here
+        break;
     }
     if (enable)
         FLAGS.data |= (uint8_t)pow(2, 3);
@@ -741,6 +771,11 @@ void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
         break;
     case SUB:
         if (((f - s - c) >> 7) != ((f >> 7))) {
+            enable = true;
+        }
+        break;
+    case AND:
+        if ((f >> 7) != ((f & s) >> 7)) {
             enable = true;
         }
         break;

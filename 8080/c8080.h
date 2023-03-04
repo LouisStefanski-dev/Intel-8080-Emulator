@@ -6,7 +6,7 @@
 #include <math.h>
 #include <format>
 
-enum operation{ ADD, SUB };
+enum operation{ ADD, SUB, AND };
 
 struct reg {
 	uint8_t data;
@@ -39,8 +39,7 @@ public:
 	uint16_t cycles = 0x00;
 
 	//i/o devices
-	uint8_t inputDevices[0xFF] = { 0x00 };
-	uint8_t outputDevices[0xFF] = { 0x00 };
+	uint8_t ioDevices[0xFF] = { 0x00 };
 
 	//if stepMode is true the program will allow the user to step through it instruction by instruction
 	//if false the program runs without intervention unless a hlt instruction is reached
@@ -75,6 +74,9 @@ public:
 
 	void sbb(reg& f, reg& s);
 	void sbb(reg& f, uint8_t s);
+
+	void ana(reg& f, reg& s);
+	void ana(reg& f, uint8_t s);
 
 	int getFlagStatus(int i);
 	int calculateParity(uint8_t f);
