@@ -67,8 +67,14 @@ int c8080::cycle()
     }
     case 0x0a:
         break;
-    case 0x0b:
+    case 0x0b: //dcx b
+    {
+        uint16_t res = ((B.data << 8) | (C.data)) - 1;
+        B.data = res >> 8;
+        C.data = res & 0xFF;
+        pc++;
         break;
+    }
     case 0x0c: //inr c
         inr(C);
         break;
@@ -128,8 +134,14 @@ int c8080::cycle()
     }
     case 0x1a:
         break;
-    case 0x1b:
+    case 0x1b: //dcx d
+    {
+        uint16_t res = ((D.data << 8) | (E.data)) - 1;
+        D.data = res >> 8;
+        E.data = res & 0xFF;
+        pc++;
         break;
+    }
     case 0x1c:
         inr(E);
         break;
@@ -193,8 +205,14 @@ int c8080::cycle()
     }
     case 0x2a:
         break;
-    case 0x2b:
+    case 0x2b: //dcx h
+    {
+        uint16_t res = ((H.data << 8) | (L.data)) - 1;
+        H.data = res >> 8;
+        L.data = res & 0xFF;
+        pc++;
         break;
+    }
     case 0x2c:
         inr(L);
         break;
@@ -243,8 +261,12 @@ int c8080::cycle()
         break;
     case 0x3a:
         break;
-    case 0x3b:
+    case 0x3b: //dcx sp
+    {
+        sp -= 1;
+        pc++;
         break;
+    }
     case 0x3c:
         inr(A);
         break;
