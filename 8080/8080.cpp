@@ -9,11 +9,12 @@
 //      5. Technically and, or, and xor set the carry and ac flags to zero. Maybe implement setting of flags rather than
 //          relying on them being cleared before
 //      6. work on carry flag and ac flag
+//      7. work on removing overloaded version of setCarryFlag(supports dad)
 //results in a carry flag when a number is subtracted from itself, maybe do a check for it with an if statement
 int main()
 {
     c8080 my8080;
-    std::string program = "3E3E06C8900664800632802476";
+    std::string program = "3E3E06C80E14092976";
     //load program into memory
     my8080.loadProgram(0x0000, program);
     my8080.stepMode = false;

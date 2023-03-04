@@ -95,6 +95,7 @@ public:
 	void ora(reg& f, uint8_t s);
 
 	void inr(reg& f);
+	void dcr(reg& f);
 
 	void nop();
 
@@ -108,7 +109,9 @@ public:
 	void setZeroFlag(uint8_t f);
 	void setACFlag(uint8_t f, uint8_t s, uint8_t c = 0, operation op = ADD);
 	void setSignFlag(uint8_t f);
+
 	void setCarryFlag(uint8_t f, uint8_t s, uint8_t c = 0, operation op = ADD);
+
 	void setParityFlag(uint8_t f);
 
 	void resetFlags();

@@ -38,6 +38,7 @@ int c8080::cycle()
         inr(B);
         break;
     case 0x05:
+        dcr(B);
         break;
     case 0x06: //MVI B, D8
         mov(B, mem[pc + 1]);
@@ -55,8 +56,15 @@ int c8080::cycle()
     case 0x08:
         nop();
         break;
-    case 0x09:
+    case 0x09: //dad b
+    {
+        uint16_t res = ((H.data << 8) | L.data) + ((B.data << 8) | C.data);
+        (((H.data << 8) | L.data) + ((B.data << 8) | C.data) > UINT16_MAX) ? (FLAGS.data |= 0x01) : (FLAGS.data &= 0xFE); //set carry flag
+        H.data = res >> 8;
+        L.data = res & 0xFF;
+        pc++;
         break;
+    }
     case 0x0a:
         break;
     case 0x0b:
@@ -65,6 +73,7 @@ int c8080::cycle()
         inr(C);
         break;
     case 0x0d:
+        dcr(C);
         break;
     case 0x0e: //mvi c, D8
         mov(C, mem[pc + 1]);
@@ -98,6 +107,7 @@ int c8080::cycle()
         inr(D);
         break;
     case 0x15:
+        dcr(D);
         break;
     case 0x16: //MVI D, D8
         mov(D, mem[pc + 1]);
@@ -107,8 +117,15 @@ int c8080::cycle()
     case 0x18:
         nop();
         break;
-    case 0x19:
+    case 0x19: //dad d
+    {
+        uint16_t res = ((H.data << 8) | L.data) + ((D.data << 8) | E.data);
+        (((H.data << 8) | L.data) + ((D.data << 8) | E.data) > UINT16_MAX) ? (FLAGS.data |= 0x01) : (FLAGS.data &= 0xFE); //set carry flag
+        H.data = res >> 8;
+        L.data = res & 0xFF;
+        pc++;
         break;
+    }
     case 0x1a:
         break;
     case 0x1b:
@@ -117,6 +134,7 @@ int c8080::cycle()
         inr(E);
         break;
     case 0x1d:
+        dcr(E);
         break;
     case 0x1e: //mvi E, D8
         mov(E, mem[pc + 1]);
@@ -154,6 +172,7 @@ int c8080::cycle()
         inr(H);
         break;
     case 0x25:
+        dcr(H);
         break;
     case 0x26: //mvi H, D8
         mov(H, mem[pc + 1]);
@@ -163,8 +182,15 @@ int c8080::cycle()
     case 0x28:
         nop();
         break;
-    case 0x29:
+    case 0x29: //dad h
+    {
+        uint16_t res = ((H.data << 8) | L.data) + ((H.data << 8) | L.data);
+        (((H.data << 8) | L.data) + ((H.data << 8) | L.data) > UINT16_MAX) ? (FLAGS.data |= 0x01) : (FLAGS.data &= 0xFE); //set carry flag
+        H.data = res >> 8;
+        L.data = res & 0xFF;
+        pc++;
         break;
+    }
     case 0x2a:
         break;
     case 0x2b:
@@ -173,6 +199,7 @@ int c8080::cycle()
         inr(L);
         break;
     case 0x2d:
+        dcr(L);
         break;
     case 0x2e: //mvi L, D8
         mov(L, mem[pc + 1]);
@@ -222,6 +249,7 @@ int c8080::cycle()
         inr(A);
         break;
     case 0x3d:
+        dcr(A);
         break;
     case 0x3e: //mvi A, D8
         mov(A, mem[pc + 1]);
@@ -858,8 +886,18 @@ void c8080::ora(reg& f, uint8_t s)
 void c8080::inr(reg& f)
 {
   //  resetFlags();
-    setACFlag(f.data, 0, 0, ADD);
+    setACFlag(f.data, 1, 0, ADD);
     f.data += 1;
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::dcr(reg& f)
+{
+    setACFlag(f.data, 1, 0, SUB);
+    f.data -= 1;
     setSignFlag(f.data);
     setZeroFlag(f.data);
     setParityFlag(f.data);
