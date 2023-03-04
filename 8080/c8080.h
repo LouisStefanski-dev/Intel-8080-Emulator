@@ -6,6 +6,13 @@
 #include <math.h>
 #include <format>
 
+//		FLAGS register order
+// -------------------------------+
+//	7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+//	S | Z | 0 | A | 0 | P | 1 | C |
+//--------------------------------+
+
+
 enum operation{ ADD, SUB, AND, OR, XOR};
 
 struct reg {
@@ -81,6 +88,9 @@ public:
 	void xra(reg& f, reg& s);
 	void xra(reg& f, uint8_t s);
 
+	void ora(reg& f, reg& s);
+	void ora(reg& f, uint8_t s);
+
 	int getFlagStatus(int i);
 	int calculateParity(uint8_t f);
 
@@ -92,6 +102,8 @@ public:
 	void setSignFlag(uint8_t f);
 	void setCarryFlag(uint8_t f, uint8_t s, uint8_t c = 0, operation op = ADD);
 	void setParityFlag(uint8_t f);
+
+	void resetFlags();
 
 	uint16_t getM();
 

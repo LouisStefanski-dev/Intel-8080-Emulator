@@ -16,10 +16,10 @@ int c8080::cycle()
         break;
     case 0x01: //LXI B, D16
         //loads byte 2[pc + 1] into C and byte 3[pc + 2] into B
-        //Increments pc by 2
+        //Increments pc by 3
         C.data = mem[pc + 1];
         B.data = mem[pc + 2];
-        pc += 2;
+        pc += 3;
         break;
     case 0x02: //stax b
         mem[(B.data << 8) | C.data] = A.data;
@@ -43,7 +43,7 @@ int c8080::cycle()
         break;
     case 0x07: //rlc 
     {
-        FLAGS.data |= (A.data & 0x80); //set carry flag
+        FLAGS.data |= ((A.data & 0x80) >> 7); //set carry flag
         uint16_t res = A.data << 1; //result of bitshift left
         uint16_t msb = res & 0x100; //isolate MSB after shl
         res |= (msb >> 8); //incorporate msb into original result
@@ -72,7 +72,10 @@ int c8080::cycle()
     //0x10 - 0x1f
     case 0x10:
         break;
-    case 0x11:
+    case 0x11: //lxi d, d16
+        E.data = mem[pc + 1];
+        D.data = mem[pc + 2];
+        pc += 3;
         break;
     case 0x12:
         break;
@@ -108,7 +111,10 @@ int c8080::cycle()
     //0x20 - 0x2f
     case 0x20:
         break;
-    case 0x21:
+    case 0x21: //lxi h, d16
+        L.data = mem[pc + 1];
+        H.data = mem[pc + 2];
+        pc += 3;
         break;
     case 0x22:
         break;
@@ -144,7 +150,10 @@ int c8080::cycle()
     //0x30 - 0x3f
     case 0x30:
         break;
-    case 0x31:
+    case 0x31: //lxi sp, d16
+        sp = mem[pc + 2] << 8;
+        sp |= mem[pc + 1];
+        pc += 3;
         break;
     case 0x32:
         break;
@@ -486,6 +495,8 @@ int c8080::cycle()
     case 0x9f:
         sbb(A, A);
         break;
+
+    //0xa0 - 0xaf
     case 0xa0: //ana b
         ana(A, B);
         break;
@@ -534,6 +545,32 @@ int c8080::cycle()
     case 0xaf: //xra a
         xra(A, A);
         break;
+
+    //0xb0 - 0xbf
+    case 0xb0: //ora b
+        ora(A, B);
+        break;
+    case 0xb1: //ora c
+        ora(A, C);
+        break;
+    case 0xb2: //ora d
+        ora(A, D);
+        break;
+    case 0xb3: //ora e
+        ora(A, E);
+        break;
+    case 0xb4: //ora h
+        ora(A, H);
+        break;
+    case 0xb5: //ora l
+        ora(A, L);
+        break;
+    case 0xb6: //ora m
+        ora(A, mem[getM()]);
+        break;
+    case 0xb7: //ora a
+        ora(A, A);
+        break;
     default:
         return -1;
         break;
@@ -567,8 +604,7 @@ void c8080::mov(reg& f, uint8_t s)
 void c8080::add(reg& f, reg& s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    FLAGS.data = 0x00;  //clear flags
-
+    resetFlags();
     setCarryFlag(f.data, s.data);
     setACFlag(f.data, s.data);
 
@@ -583,8 +619,7 @@ void c8080::add(reg& f, reg& s)
 void c8080::add(reg& f, uint8_t s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    FLAGS.data = 0x00;  //clear flags
-
+    resetFlags();
     setCarryFlag(f.data, s);
     setACFlag(f.data, s);
 
@@ -601,8 +636,7 @@ void c8080::adc(reg& f, reg& s)
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
 
-    FLAGS.data = 0x00; //clear flags
-
+    resetFlags();
     setCarryFlag(f.data, s.data, carryData);
     setACFlag(f.data, s.data, carryData);
 
@@ -619,8 +653,7 @@ void c8080::adc(reg& f, uint8_t s)
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
 
-    FLAGS.data = 0x00; //clear flags
-
+    resetFlags();
     setCarryFlag(f.data, s, carryData);
     setACFlag(f.data, s, carryData);
 
@@ -635,8 +668,7 @@ void c8080::adc(reg& f, uint8_t s)
 void c8080::sub(reg& f, reg& s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    FLAGS.data = 0x00;  //clear flags
-
+    resetFlags();
     setCarryFlag(f.data, s.data, 0, SUB);
     setACFlag(f.data, s.data, 0, SUB);
 
@@ -651,8 +683,7 @@ void c8080::sub(reg& f, reg& s)
 void c8080::sub(reg& f, uint8_t s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    FLAGS.data = 0x00;  //clear flags
-
+    resetFlags();
     setCarryFlag(f.data, s, 0, SUB);
     setACFlag(f.data, s, 0, SUB);
 
@@ -669,8 +700,7 @@ void c8080::sbb(reg& f, reg& s) //TODO: the other emulator is giving carrie
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
 
-    FLAGS.data = 0x00; //clear flags 
-
+    resetFlags();
     setCarryFlag(f.data, s.data, carryData, SUB);
     setACFlag(f.data, s.data, carryData, SUB);
 
@@ -687,8 +717,7 @@ void c8080::sbb(reg& f, uint8_t s)
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
 
-    FLAGS.data = 0x00; //clear flags 
-
+    resetFlags();
     setCarryFlag(f.data, s, carryData, SUB);
     setACFlag(f.data, s, carryData, SUB);
 
@@ -702,8 +731,7 @@ void c8080::sbb(reg& f, uint8_t s)
 
 void c8080::ana(reg& f, reg& s)
 {
-    FLAGS.data = 0x00; //clear flags
-
+    resetFlags();
     setCarryFlag(f.data, s.data, 0, AND);
     setACFlag(f.data, s.data, 0, AND);
 
@@ -717,8 +745,7 @@ void c8080::ana(reg& f, reg& s)
 
 void c8080::ana(reg& f, uint8_t s)
 {
-    FLAGS.data = 0x00; //clear flags
-
+    resetFlags();
     setCarryFlag(f.data, s, 0, AND);
     setACFlag(f.data, s, 0, AND);
 
@@ -732,8 +759,7 @@ void c8080::ana(reg& f, uint8_t s)
 
 void c8080::xra(reg& f, reg& s)
 {
-    FLAGS.data = 0x00; //clear flags
-
+    resetFlags();
     setCarryFlag(f.data, s.data, 0, XOR);
     setACFlag(f.data, s.data, 0, XOR);
 
@@ -747,8 +773,7 @@ void c8080::xra(reg& f, reg& s)
 
 void c8080::xra(reg& f, uint8_t s)
 {
-    FLAGS.data = 0x00; //clear flags
-
+    resetFlags();
     setCarryFlag(f.data, s, 0, XOR);
     setACFlag(f.data, s, 0, XOR);
 
@@ -760,13 +785,41 @@ void c8080::xra(reg& f, uint8_t s)
     pc++;
 }
 
+void c8080::ora(reg& f, reg& s)
+{
+    resetFlags();
+    setCarryFlag(f.data, s.data, 0, OR);
+    setACFlag(f.data, s.data, 0, OR);
+
+    f.data |= s.data;
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
+void c8080::ora(reg& f, uint8_t s)
+{
+    resetFlags();
+    setCarryFlag(f.data, s, 0, OR);
+    setACFlag(f.data, s, 0, OR);
+
+    f.data |= s;
+
+    setSignFlag(f.data);
+    setZeroFlag(f.data);
+    setParityFlag(f.data);
+    pc++;
+}
+
 //returns the value of a flag(denoted by i)
 //Below are the values i for certain flags
-//  0. sign
-//  1. zero
-//  3. AC
-//  5. Parity
-//  7. Carry
+//  7. sign
+//  6. zero
+//  4. AC
+//  2. Parity
+//  0. Carry
 int c8080::getFlagStatus(int i)
 {
     return (FLAGS.data & (0x00 | (uint8_t)pow(2, i))) >> i;
@@ -784,6 +837,7 @@ int c8080::calculateParity(uint8_t f)
     return (onBits % 2) == 0 ? 1 : 0;
 }
 
+//loads a program(in hexadecimal format) into memory starting at startAddr
 void c8080::loadProgram(uint16_t startAddr, std::string program)
 {
     uint8_t memAddr = 0x00;
@@ -801,7 +855,7 @@ void c8080::loadProgram(uint16_t startAddr, std::string program)
 void c8080::setZeroFlag(uint8_t f)
 {
     if (f == 0) {
-        FLAGS.data |= (uint8_t)pow(2, 1);
+        FLAGS.data |= (uint8_t)pow(2, 6);
     }
 }
 
@@ -828,9 +882,12 @@ void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
     case XOR:
         //TODO: do logic here
         break;
+    case OR:
+        //TODO: do logic here
+        break;
     }
     if (enable)
-        FLAGS.data |= (uint8_t)pow(2, 3);
+        FLAGS.data |= (uint8_t)pow(2, 4);
     //delete commented code once certain switch works
     //if (op == ADD) {
     //    if (((f - s - c) > pow(2, 4) - 1) && (f < pow(2, 4) - 1)) {
@@ -847,10 +904,12 @@ void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
 void c8080::setSignFlag(uint8_t f)
 {
     if (f >> 7) {
-        FLAGS.data |= (uint8_t)pow(2, 0);
+        FLAGS.data |= (uint8_t)pow(2, 7);
     }
 }
 
+//TODO: Check into when exactly carry flag is set. Is it set anytime there is a change in MSB or just when the MSB goes from 1 to 0?
+// 
 //takes two uint8_t, f and s, and sets appropriate bit in flag if their sum produces a carry
 //The op argument is used to signify if this function is checking for AC flag with subtraction or addition
 void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
@@ -877,9 +936,15 @@ void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
             enable = true;
         }
         break;
+    case OR:
+        if ((f >> 7) != ((f | s) >> 7)) {
+            enable = true;
+        }
+        break;
     }
     if (enable)
-        FLAGS.data |= (uint8_t)pow(2, 7);
+        FLAGS.data |= 0x01;
+    uint8_t b = 0;
     //remove this code once certain this method (switch) works
  /*   if (op == ADD) {
         if (f + s + c > UINT8_MAX) {
@@ -896,8 +961,14 @@ void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
 void c8080::setParityFlag(uint8_t f)
 {
     if (calculateParity(f)) {
-        FLAGS.data |= (uint8_t)pow(2, 5);
+        FLAGS.data |= (uint8_t)pow(2, 2);
     }
+}
+
+//resets the flags to their default value (0x02)
+void c8080::resetFlags()
+{
+    FLAGS.data = 0x02; //sinces the flags register always have bit 1 = 1
 }
 
 //returns the value given by H << 8 | L 
@@ -916,14 +987,14 @@ void c8080::stateUpdate() {
         " H: " << std::format("{:#x}", H.data) << " L: " << std::format("{:#x}", L.data)
         << std::endl;
     std::cout << 
-                "FLAGS: S: " << std::format("{:#x}", getFlagStatus(0)) <<
-                " Z: " << std::format("{:#x}", getFlagStatus(1)) <<
-                " AC: " << std::format("{:#x}", getFlagStatus(3)) << 
-                " P: " << std::format("{:#x}", getFlagStatus(5)) <<
-                " C: " << std::format("{:#x}", getFlagStatus(7)) << std::endl;
+                "FLAGS: S: " << std::format("{:#x}", getFlagStatus(7)) <<
+                " Z: " << std::format("{:#x}", getFlagStatus(6)) <<
+                " AC: " << std::format("{:#x}", getFlagStatus(4)) << 
+                " P: " << std::format("{:#x}", getFlagStatus(2)) <<
+                " C: " << std::format("{:#x}", getFlagStatus(0)) << std::endl;
     std::cout <<
         "Current Instruction: " << std::format("{:#x}", mem[pc]) << "   " <<
-        "Current Stack: " << std::format("{:#x}", mem[sp])
+        "Current Stack Pointer: " << std::format("{:#x}", sp)
         << std::endl;
     std::cout << "Current Cycle: " << cycles  << " Current PC: " << std::format("{:#x}", pc) << std::endl;
     std::cout << "----------------------------------------------------------------------------------------" << std::endl;
