@@ -35,6 +35,7 @@ int c8080::cycle()
         break;
     }
     case 0x04:
+        inr(B);
         break;
     case 0x05:
         break;
@@ -94,6 +95,7 @@ int c8080::cycle()
         break;
     }
     case 0x14:
+        inr(D);
         break;
     case 0x15:
         break;
@@ -112,6 +114,7 @@ int c8080::cycle()
     case 0x1b:
         break;
     case 0x1c:
+        inr(E);
         break;
     case 0x1d:
         break;
@@ -148,6 +151,7 @@ int c8080::cycle()
         break;
     }
     case 0x24:
+        inr(H);
         break;
     case 0x25:
         break;
@@ -166,6 +170,7 @@ int c8080::cycle()
     case 0x2b:
         break;
     case 0x2c:
+        inr(L);
         break;
     case 0x2d:
         break;
@@ -214,6 +219,7 @@ int c8080::cycle()
     case 0x3b:
         break;
     case 0x3c:
+        inr(A);
         break;
     case 0x3d:
         break;
@@ -640,7 +646,7 @@ void c8080::mov(reg& f, uint8_t s)
 void c8080::add(reg& f, reg& s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    resetFlags();
+  //  resetFlags();
     setCarryFlag(f.data, s.data);
     setACFlag(f.data, s.data);
 
@@ -655,7 +661,7 @@ void c8080::add(reg& f, reg& s)
 void c8080::add(reg& f, uint8_t s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    resetFlags();
+ //   resetFlags();
     setCarryFlag(f.data, s);
     setACFlag(f.data, s);
 
@@ -672,7 +678,7 @@ void c8080::adc(reg& f, reg& s)
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
 
-    resetFlags();
+  //  resetFlags();
     setCarryFlag(f.data, s.data, carryData);
     setACFlag(f.data, s.data, carryData);
 
@@ -689,7 +695,7 @@ void c8080::adc(reg& f, uint8_t s)
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
 
-    resetFlags();
+  //  resetFlags();
     setCarryFlag(f.data, s, carryData);
     setACFlag(f.data, s, carryData);
 
@@ -704,7 +710,7 @@ void c8080::adc(reg& f, uint8_t s)
 void c8080::sub(reg& f, reg& s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    resetFlags();
+  //  resetFlags();
     setCarryFlag(f.data, s.data, 0, SUB);
     setACFlag(f.data, s.data, 0, SUB);
 
@@ -719,7 +725,7 @@ void c8080::sub(reg& f, reg& s)
 void c8080::sub(reg& f, uint8_t s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    resetFlags();
+ //   resetFlags();
     setCarryFlag(f.data, s, 0, SUB);
     setACFlag(f.data, s, 0, SUB);
 
@@ -736,7 +742,7 @@ void c8080::sbb(reg& f, reg& s) //TODO: the other emulator is giving carrie
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
 
-    resetFlags();
+  //  resetFlags();
     setCarryFlag(f.data, s.data, carryData, SUB);
     setACFlag(f.data, s.data, carryData, SUB);
 
@@ -753,7 +759,7 @@ void c8080::sbb(reg& f, uint8_t s)
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
 
-    resetFlags();
+  //  resetFlags();
     setCarryFlag(f.data, s, carryData, SUB);
     setACFlag(f.data, s, carryData, SUB);
 
@@ -767,7 +773,7 @@ void c8080::sbb(reg& f, uint8_t s)
 
 void c8080::ana(reg& f, reg& s)
 {
-    resetFlags();
+  //  resetFlags();
     setCarryFlag(f.data, s.data, 0, AND);
     setACFlag(f.data, s.data, 0, AND);
 
@@ -781,7 +787,7 @@ void c8080::ana(reg& f, reg& s)
 
 void c8080::ana(reg& f, uint8_t s)
 {
-    resetFlags();
+ //   resetFlags();
     setCarryFlag(f.data, s, 0, AND);
     setACFlag(f.data, s, 0, AND);
 
@@ -795,7 +801,7 @@ void c8080::ana(reg& f, uint8_t s)
 
 void c8080::xra(reg& f, reg& s)
 {
-    resetFlags();
+ //   resetFlags();
     setCarryFlag(f.data, s.data, 0, XOR);
     setACFlag(f.data, s.data, 0, XOR);
 
@@ -809,7 +815,7 @@ void c8080::xra(reg& f, reg& s)
 
 void c8080::xra(reg& f, uint8_t s)
 {
-    resetFlags();
+ //   resetFlags();
     setCarryFlag(f.data, s, 0, XOR);
     setACFlag(f.data, s, 0, XOR);
 
@@ -823,7 +829,7 @@ void c8080::xra(reg& f, uint8_t s)
 
 void c8080::ora(reg& f, reg& s)
 {
-    resetFlags();
+ //   resetFlags();
     setCarryFlag(f.data, s.data, 0, OR);
     setACFlag(f.data, s.data, 0, OR);
 
@@ -837,7 +843,7 @@ void c8080::ora(reg& f, reg& s)
 
 void c8080::ora(reg& f, uint8_t s)
 {
-    resetFlags();
+  //  resetFlags();
     setCarryFlag(f.data, s, 0, OR);
     setACFlag(f.data, s, 0, OR);
 
@@ -851,7 +857,7 @@ void c8080::ora(reg& f, uint8_t s)
 
 void c8080::inr(reg& f)
 {
-    resetFlags();
+  //  resetFlags();
     setACFlag(f.data, 0, 0, ADD);
     f.data += 1;
     setSignFlag(f.data);
@@ -908,7 +914,9 @@ void c8080::setZeroFlag(uint8_t f)
 {
     if (f == 0) {
         FLAGS.data |= (uint8_t)pow(2, 6);
+        return;
     }
+    FLAGS.data &= 0xBF; //turn off AC Flag bit
 }
 
 //takes two uint8_t variables, f and s, and sets appropiate bit in flag if their is a carry from low nibble to high nibble in the result
@@ -931,17 +939,19 @@ void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
         }
         break;
     case AND:
-        //this does nothing
+        FLAGS.data &= 0xEF; //turn off AC Flag bit
         break;
     case XOR:
-        //TODO: do logic here
+        FLAGS.data &= 0xEF; //turn off AC Flag bit
         break;
     case OR:
-        //TODO: do logic here
+        FLAGS.data &= 0xEF; //turn off AC Flag bit
         break;
     }
     if (enable)
         FLAGS.data |= (uint8_t)pow(2, 4);
+    else
+        FLAGS.data &= 0xEF;
 }
 
 //takes a uint8_t and sets appropiate bit in flag if the first bit is a sign bit
@@ -949,7 +959,9 @@ void c8080::setSignFlag(uint8_t f)
 {
     if (f >> 7) {
         FLAGS.data |= (uint8_t)pow(2, 7);
+        return;
     }
+    FLAGS.data &= 0x7F; //turn off AC Flag bit
 }
 
 //TODO: Check into when exactly carry flag is set. Is it set anytime there is a change in MSB or just when the MSB goes from 1 to 0?
@@ -975,17 +987,19 @@ void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
         break;
     }
     case AND:
-        //does not set
+        FLAGS.data &= 0xFE; //turn off C Flag bit
         break;
     case XOR:
-        //dooes not set
+        FLAGS.data &= 0xFE; //turn off C Flag bit
         break;
     case OR:
-        //does not set
+        FLAGS.data &= 0xFE; //turn off C Flag bit
         break;
     }
     if (enable)
         FLAGS.data |= 0x01;
+    else
+        FLAGS.data &= 0xFE;
 }
 
 //takes a uint8_t and sets appropriate bit in flag to 1 if the parity of f is even, 0 otherwise
@@ -993,7 +1007,9 @@ void c8080::setParityFlag(uint8_t f)
 {
     if (calculateParity(f)) {
         FLAGS.data |= (uint8_t)pow(2, 2);
+        return;
     }
+    FLAGS.data &= 0xFB; //turn off P Flag bit
 }
 
 //resets the flags to their default value (0x02)

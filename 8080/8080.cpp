@@ -13,7 +13,7 @@
 int main()
 {
     c8080 my8080;
-    std::string program = "3E3E06C89013333201000C76";
+    std::string program = "3E3E06C8900664800632802476";
     //load program into memory
     my8080.loadProgram(0x0000, program);
     my8080.stepMode = false;
