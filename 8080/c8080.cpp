@@ -189,8 +189,27 @@ int c8080::cycle()
     case 0x26: //mvi H, D8
         mov(H, mem[pc + 1]);
         break;
-    case 0x27:
+    case 0x27: //daa
+    {
+        //NOTE: this may not be the correct implementation...although this follows the steps laid out in
+        //the 8080 manual. 
+        //Although, it should be noted this code produces the same output as the manuals example. 
+        if (((A.data & 0x0F) > 9) || (getFlagStatus(4))) {
+            setACFlag(A.data, 6, 0, ADD);
+            A.data += 6;
+            if (((A.data & 0xF0) > 9) || (getFlagStatus(0))) {
+                uint16_t highNibble = (A.data & 0xF0) >> 4;
+                highNibble += 6;
+                ((highNibble & 0xF0) > 0x00) ? (FLAGS.data |= 0x01) : (FLAGS.data = FLAGS.data); //set carry flag
+                A.data |= (highNibble << 4);
+            }
+        }
+        setZeroFlag(A.data);
+        setParityFlag(A.data);
+        setSignFlag(A.data);
+        pc++;
         break;
+    }
     case 0x28:
         nop();
         break;
@@ -222,7 +241,9 @@ int c8080::cycle()
     case 0x2e: //mvi L, D8
         mov(L, mem[pc + 1]);
         break;
-    case 0x2f:
+    case 0x2f: //cma
+        A.data = ~A.data;
+        pc++;
         break;
 
     //0x30 - 0x3f
@@ -252,7 +273,9 @@ int c8080::cycle()
         mem[getM()] = mem[pc + 1];
         pc += 2;
         break;
-    case 0x37:
+    case 0x37: //stc
+        FLAGS.data |= 0x01;
+        pc++;
         break;
     case 0x38:
         nop();
@@ -276,7 +299,9 @@ int c8080::cycle()
     case 0x3e: //mvi A, D8
         mov(A, mem[pc + 1]);
         break;
-    case 0x3f:
+    case 0x3f: //cmc
+        FLAGS.data ^= 1;
+        pc++;
         break;
     //switch through moves 0x40 - 0x4f
     case 0x40: //mov b,b
