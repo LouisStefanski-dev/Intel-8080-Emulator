@@ -14,7 +14,8 @@
 int main()
 {
     c8080 my8080;
-    std::string program = "3E32061EC3070080C20B0076";
+    std::string program = "3E013DCD0900C20C000E14760E3276";
+    //std::string program = "3E323333CD0700060A8076";
     //load program into memory
     my8080.loadProgram(0x0000, program);
     my8080.stepMode = false;

@@ -34,8 +34,8 @@ public:
 	reg A, B, C, D, E, H, L, FLAGS;
 
 	//Memory
-	uint8_t mem[0xFFFF] = { 0x0000 }; //64KB of memory
-
+	//uint8_t mem[0xFFFF] = { 0x0000 }; //64KB of memory
+	uint8_t* mem = (uint8_t*)malloc(0xFFFF);
 	//Stack pointer
 	uint16_t sp;
 
@@ -99,6 +99,7 @@ public:
 
 	void ret();
 	void jmp();
+	void call();
 
 	void nop();
 

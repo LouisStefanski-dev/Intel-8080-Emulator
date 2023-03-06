@@ -487,6 +487,8 @@ int c8080::cycle()
         pc++;
         break;
     case 0x76: //HLT TODO: check on halt functionality
+        pc++; 
+        stateUpdate();
         return -1; //break 
         break;
     case 0x77: //mov M, a
@@ -764,11 +766,13 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xcb:
+    case 0xcb: //jmp a16
+        jmp();
         break;
     case 0xcc:
         break;
-    case 0xcd:
+    case 0xcd: //call a16
+        call();
         break;
     case 0xce:
         break;
@@ -815,7 +819,8 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xd9:
+    case 0xd9: //ret
+        ret();
         break;
     case 0xda: //jc
     {
@@ -1218,6 +1223,14 @@ void c8080::ret()
 //jumps to addr
 void c8080::jmp()
 {
+    pc = (mem[pc + 2] << 8) | mem[pc + 1];
+}
+
+void c8080::call() //work on functionality when sp is < 2
+{
+    mem[sp - 1] = (pc >> 8);
+    mem[sp - 2] = (pc & 0x0F);
+    sp -= 2;
     pc = (mem[pc + 2] << 8) | mem[pc + 1];
 }
 
