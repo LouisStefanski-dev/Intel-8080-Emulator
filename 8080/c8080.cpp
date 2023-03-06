@@ -723,27 +723,47 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xc1:
+    case 0xc1: //pop B
+    {
+        C.data = mem[sp];
+        B.data = mem[sp + 1]; 
+        sp += 2;
+        pc++;
         break;
+    }
     case 0xc2: //jnz
     {
         if (!getFlagStatus(6)) {
             jmp();
             break;
         }
-        pc++;
+        pc += 3;
         break;
     }
     case 0xc3: //jmp a16
         jmp();
         break;
-    case 0xc4:
+    case 0xc4: //cnz
+    {
+        if (!getFlagStatus(6)) {
+            call();
+            break;
+        }
+        pc += 3;
         break;
-    case 0xc5:
+    }
+    case 0xc5: //push B
+    {
+        mem[sp - 2] = C.data;
+        mem[sp - 1] = B.data;
+        sp -= 2;
+        pc++;
         break;
+    }
     case 0xc6:
         break;
-    case 0xc7:
+    case 0xc7: //rst 0
+
         break;
     case 0xc8: //rz
     {
@@ -763,14 +783,21 @@ int c8080::cycle()
             jmp();
             break;
         }
-        pc++;
+        pc += 3;
         break;
     }
     case 0xcb: //jmp a16
         jmp();
         break;
-    case 0xcc:
+    case 0xcc: //cz a16
+    {
+        if (getFlagStatus(6)) {
+            call();
+            break;
+        }
+        pc += 3;
         break;
+    }
     case 0xcd: //call a16
         call();
         break;
@@ -789,23 +816,42 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xd1:
+    case 0xd1: //pop D
+    {
+        E.data = mem[sp];
+        D.data = mem[sp + 1];
+        sp += 2;
+        pc++;
         break;
+    }
     case 0xd2: //jnc
     {
         if (!getFlagStatus(0)) {
             jmp();
             break;
         }
-        pc++;
+        pc += 3;
         break;
     }
     case 0xd3:
         break;
-    case 0xd4:
+    case 0xd4: //cnc
+    {
+        if (!getFlagStatus(0)) {
+            call();
+            break;
+        }
+        pc += 3;
         break;
-    case 0xd5:
+    }
+    case 0xd5: //push D
+    {
+        mem[sp - 2] = E.data;
+        mem[sp - 1] = D.data;
+        sp -= 2;
+        pc++;
         break;
+    }
     case 0xd6:
         break;
     case 0xd7:
@@ -828,14 +874,22 @@ int c8080::cycle()
             jmp();
             break;
         }
-        pc++;
+        pc += 3;
         break;
     }
     case 0xdb:
         break;
-    case 0xdc:
+    case 0xdc: //cc 
+    {
+        if (getFlagStatus(0)) {
+            call();
+            break;
+        }
+        pc += 3;
         break;
-    case 0xdd:
+    }
+    case 0xdd: //call
+        call();
         break;
     case 0xde:
         break;
@@ -852,23 +906,42 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xe1:
+    case 0xe1: //pop H
+    {
+        L.data = mem[sp];
+        H.data = mem[sp + 1];
+        sp += 2;
+        pc++;
         break;
+    }
     case 0xe2: //jpo
     {
         if (!getFlagStatus(2)) {
             jmp();
             break;
         }
-        pc++;
+        pc += 3;
         break;
     }
     case 0xe3:
         break;
-    case 0xe4:
+    case 0xe4: //cpo
+    {
+        if (!getFlagStatus(2)) {
+            call();
+            break;
+        }
+        pc += 3;
         break;
-    case 0xe5:
+    }
+    case 0xe5: //push H
+    {
+        mem[sp - 2] = L.data;
+        mem[sp - 1] = H.data;
+        sp -= 2;
+        pc++;
         break;
+    }
     case 0xe6:
         break;
     case 0xe7:
@@ -890,14 +963,22 @@ int c8080::cycle()
             jmp();
             break;
         }
-        pc++;
+        pc += 3;
         break;
     }
     case 0xeb:
         break;
-    case 0xec:
+    case 0xec: //cpe
+    {
+        if (getFlagStatus(2)) {
+            call();
+            break;
+        }
+        pc += 3;
         break;
-    case 0xed:
+    }
+    case 0xed: //call
+        call();
         break;
     case 0xee:
         break;
@@ -914,23 +995,42 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xf1:
+    case 0xf1: //pop psw
+    {
+        FLAGS.data = mem[sp];
+        A.data = mem[sp + 1];
+        sp += 2;
+        pc++;
         break;
+    }
     case 0xf2: //jp
     {
         if (!getFlagStatus(7)) {
             jmp();
             break;
         }
-        pc++;
+        pc += 3;
         break;
     }
     case 0xf3:
         break;
-    case 0xf4:
+    case 0xf4: //cp
+    {
+        if (!getFlagStatus(7)) {
+            call();
+            break;
+        }
+        pc += 3;
         break;
-    case 0xf5:
+    }
+    case 0xf5: //push PSW
+    {
+        mem[sp - 2] = FLAGS.data;
+        mem[sp - 1] = A.data;
+        sp -= 2;
+        pc++;
         break;
+    }
     case 0xf6:
         break;
     case 0xf7:
@@ -952,14 +1052,22 @@ int c8080::cycle()
             jmp();
             break;
         }
-        pc++;
+        pc += 3;
         break;
     }
     case 0xfb:
         break;
-    case 0xfc:
+    case 0xfc: //cm 
+    {
+        if (getFlagStatus(7)) {
+            call();
+            break;
+        }
+        pc += 3;
         break;
-    case 0xfd:
+    }
+    case 0xfd: //call
+        call();
         break;
     case 0xfe:
         break;
@@ -1226,13 +1334,19 @@ void c8080::jmp()
     pc = (mem[pc + 2] << 8) | mem[pc + 1];
 }
 
-void c8080::call() //work on functionality when sp is < 2
+void c8080::call() 
 {
     mem[sp - 1] = (pc >> 8);
     mem[sp - 2] = (pc & 0x0F);
     sp -= 2;
     pc = (mem[pc + 2] << 8) | mem[pc + 1];
 }
+
+void c8080::rst(uint8_t base)
+{
+
+}
+
 
 void c8080::nop()
 {
