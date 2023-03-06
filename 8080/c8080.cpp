@@ -463,29 +463,35 @@ int c8080::cycle()
     //TODO:  Look into the logic used for 0x70-0x77 as I am assuming the 8 bit registers can only fit the L(low) register 
     //M register is the same as (H << 8) | L 
     case 0x70: //mov M,b
-        mov(L, B);
+        mem[(H.data << 8) | L.data] = B.data;
+        pc++;
         break;
     case 0x71: //mov M, c
-        mov(L, C);
+        mem[(H.data << 8) | L.data] = C.data;
+        pc++;
         break;
     case 0x72: //mov M, d
-        mov(L, D);
+        mem[(H.data << 8) | L.data] = D.data;
+        pc++;
         break;
     case 0x73: //mov M, e
-        mov(L, E);
+        mem[(H.data << 8) | L.data] = E.data;
+        pc++;
         break;
     case 0x74: //mov M, h
-        mov(L, H);
+        mem[(H.data << 8) | L.data] = H.data;
+        pc++;
         break;
     case 0x75: //mov M, l
-        mov(L, L);
+        mem[(H.data << 8) | L.data] = L.data;
+        pc++;
         break;
     case 0x76: //HLT TODO: check on halt functionality
         return -1; //break 
         break;
     case 0x77: //mov M, a
-        //TODO fix this functionality for all onces like this, this seems to be the only one but make sure
-        mov(L, A);
+        mem[(H.data << 8) | L.data] = A.data;
+        pc++;
         break;
     case 0x78: //mov a, b
         mov(A, B);
@@ -688,6 +694,272 @@ int c8080::cycle()
     case 0xb7: //ora a
         ora(A, A);
         break;
+    case 0xb8:
+        break;
+    case 0xb9:
+        break;
+    case 0xba:
+        break;
+    case 0xbb:
+        break;
+    case 0xbc:
+        break;
+    case 0xbd:
+        break;
+    case 0xbe:
+        break;
+    case 0xbf:
+        break;
+
+    //0xc0 - 0xcf
+    case 0xc0: //rnz
+    {
+        if (!getFlagStatus(6)) {
+            ret();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xc1:
+        break;
+    case 0xc2: //jnz
+    {
+        if (!getFlagStatus(6)) {
+            jmp();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xc3: //jmp a16
+        jmp();
+        break;
+    case 0xc4:
+        break;
+    case 0xc5:
+        break;
+    case 0xc6:
+        break;
+    case 0xc7:
+        break;
+    case 0xc8: //rz
+    {
+        if (getFlagStatus(6)) {
+            ret();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xc9: //ret
+        ret();
+        break;
+    case 0xca: //jz
+    {
+        if (getFlagStatus(6)) {
+            jmp();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xcb:
+        break;
+    case 0xcc:
+        break;
+    case 0xcd:
+        break;
+    case 0xce:
+        break;
+    case 0xcf:
+        break;
+
+    //0xd0 - 0xdf
+    case 0xd0: //rnc
+    {
+        if (!getFlagStatus(0)) {
+            ret();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xd1:
+        break;
+    case 0xd2: //jnc
+    {
+        if (!getFlagStatus(0)) {
+            jmp();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xd3:
+        break;
+    case 0xd4:
+        break;
+    case 0xd5:
+        break;
+    case 0xd6:
+        break;
+    case 0xd7:
+        break;
+    case 0xd8: //rc
+    {
+        if (getFlagStatus(0)) {
+            ret();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xd9:
+        break;
+    case 0xda: //jc
+    {
+        if (getFlagStatus(0)) {
+            jmp();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xdb:
+        break;
+    case 0xdc:
+        break;
+    case 0xdd:
+        break;
+    case 0xde:
+        break;
+    case 0xdf:
+        break;
+
+    //0xe0 - 0xef
+    case 0xe0: //rpo 
+    {
+        if (!getFlagStatus(2)) {
+            ret();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xe1:
+        break;
+    case 0xe2: //jpo
+    {
+        if (!getFlagStatus(2)) {
+            jmp();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xe3:
+        break;
+    case 0xe4:
+        break;
+    case 0xe5:
+        break;
+    case 0xe6:
+        break;
+    case 0xe7:
+        break;
+    case 0xe8: //rpe
+    {
+        if (getFlagStatus(2)) {
+            ret();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xe9:
+        break;
+    case 0xea: //jpe
+    {
+        if (getFlagStatus(2)) {
+            jmp();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xeb:
+        break;
+    case 0xec:
+        break;
+    case 0xed:
+        break;
+    case 0xee:
+        break;
+    case 0xef:
+        break;
+
+    //0xf0 - 0xff
+    case 0xf0: //rp
+    {
+        if (!getFlagStatus(7)) {
+            ret();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xf1:
+        break;
+    case 0xf2: //jp
+    {
+        if (!getFlagStatus(7)) {
+            jmp();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xf3:
+        break;
+    case 0xf4:
+        break;
+    case 0xf5:
+        break;
+    case 0xf6:
+        break;
+    case 0xf7:
+        break;
+    case 0xf8: //rm
+    {
+        if (getFlagStatus(7)) {
+            ret();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xf9:
+        break;
+    case 0xfa: //jm
+    {
+        if (getFlagStatus(7)) {
+            jmp();
+            break;
+        }
+        pc++;
+        break;
+    }
+    case 0xfb:
+        break;
+    case 0xfc:
+        break;
+    case 0xfd:
+        break;
+    case 0xfe:
+        break;
+    case 0xff:
+        break;
     default:
         return -1;
         break;
@@ -720,8 +992,6 @@ void c8080::mov(reg& f, uint8_t s)
 //TODO: check on if ac flag is correct
 void c8080::add(reg& f, reg& s)
 {
-    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-  //  resetFlags();
     setCarryFlag(f.data, s.data);
     setACFlag(f.data, s.data);
 
@@ -735,8 +1005,6 @@ void c8080::add(reg& f, reg& s)
 
 void c8080::add(reg& f, uint8_t s)
 {
-    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
- //   resetFlags();
     setCarryFlag(f.data, s);
     setACFlag(f.data, s);
 
@@ -784,8 +1052,6 @@ void c8080::adc(reg& f, uint8_t s)
 
 void c8080::sub(reg& f, reg& s)
 {
-    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-  //  resetFlags();
     setCarryFlag(f.data, s.data, 0, SUB);
     setACFlag(f.data, s.data, 0, SUB);
 
@@ -799,8 +1065,6 @@ void c8080::sub(reg& f, reg& s)
 
 void c8080::sub(reg& f, uint8_t s)
 {
-    //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
- //   resetFlags();
     setCarryFlag(f.data, s, 0, SUB);
     setACFlag(f.data, s, 0, SUB);
 
@@ -817,7 +1081,6 @@ void c8080::sbb(reg& f, reg& s) //TODO: the other emulator is giving carrie
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
 
-  //  resetFlags();
     setCarryFlag(f.data, s.data, carryData, SUB);
     setACFlag(f.data, s.data, carryData, SUB);
 
@@ -834,7 +1097,6 @@ void c8080::sbb(reg& f, uint8_t s)
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
     uint8_t carryData = getFlagStatus(7); //store carry data
 
-  //  resetFlags();
     setCarryFlag(f.data, s, carryData, SUB);
     setACFlag(f.data, s, carryData, SUB);
 
@@ -848,7 +1110,6 @@ void c8080::sbb(reg& f, uint8_t s)
 
 void c8080::ana(reg& f, reg& s)
 {
-  //  resetFlags();
     setCarryFlag(f.data, s.data, 0, AND);
     setACFlag(f.data, s.data, 0, AND);
 
@@ -862,7 +1123,6 @@ void c8080::ana(reg& f, reg& s)
 
 void c8080::ana(reg& f, uint8_t s)
 {
- //   resetFlags();
     setCarryFlag(f.data, s, 0, AND);
     setACFlag(f.data, s, 0, AND);
 
@@ -876,7 +1136,6 @@ void c8080::ana(reg& f, uint8_t s)
 
 void c8080::xra(reg& f, reg& s)
 {
- //   resetFlags();
     setCarryFlag(f.data, s.data, 0, XOR);
     setACFlag(f.data, s.data, 0, XOR);
 
@@ -890,7 +1149,6 @@ void c8080::xra(reg& f, reg& s)
 
 void c8080::xra(reg& f, uint8_t s)
 {
- //   resetFlags();
     setCarryFlag(f.data, s, 0, XOR);
     setACFlag(f.data, s, 0, XOR);
 
@@ -904,7 +1162,6 @@ void c8080::xra(reg& f, uint8_t s)
 
 void c8080::ora(reg& f, reg& s)
 {
- //   resetFlags();
     setCarryFlag(f.data, s.data, 0, OR);
     setACFlag(f.data, s.data, 0, OR);
 
@@ -918,7 +1175,6 @@ void c8080::ora(reg& f, reg& s)
 
 void c8080::ora(reg& f, uint8_t s)
 {
-  //  resetFlags();
     setCarryFlag(f.data, s, 0, OR);
     setACFlag(f.data, s, 0, OR);
 
@@ -932,7 +1188,6 @@ void c8080::ora(reg& f, uint8_t s)
 
 void c8080::inr(reg& f)
 {
-  //  resetFlags();
     setACFlag(f.data, 1, 0, ADD);
     f.data += 1;
     setSignFlag(f.data);
@@ -949,6 +1204,21 @@ void c8080::dcr(reg& f)
     setZeroFlag(f.data);
     setParityFlag(f.data);
     pc++;
+}
+
+//return instruction
+//does not increment pc
+void c8080::ret()
+{
+    pc = 0x00; //reset pc
+    pc = mem[sp];
+    pc |= (mem[sp + 1] << 8);
+    sp += 2;
+}
+//jumps to addr
+void c8080::jmp()
+{
+    pc = (mem[pc + 2] << 8) | mem[pc + 1];
 }
 
 void c8080::nop()
@@ -1023,14 +1293,11 @@ void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
             enable = true;
         }
         break;
-    case AND:
-        FLAGS.data &= 0xEF; //turn off AC Flag bit
+    case AND: //logical operations do not affect ac flag
         break;
     case XOR:
-        FLAGS.data &= 0xEF; //turn off AC Flag bit
         break;
     case OR:
-        FLAGS.data &= 0xEF; //turn off AC Flag bit
         break;
     }
     if (enable)
@@ -1071,14 +1338,11 @@ void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
         }
         break;
     }
-    case AND:
-        FLAGS.data &= 0xFE; //turn off C Flag bit
+    case AND: //logical operations do not affect the c flag
         break;
     case XOR:
-        FLAGS.data &= 0xFE; //turn off C Flag bit
         break;
     case OR:
-        FLAGS.data &= 0xFE; //turn off C Flag bit
         break;
     }
     if (enable)

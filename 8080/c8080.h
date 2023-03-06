@@ -97,6 +97,9 @@ public:
 	void inr(reg& f);
 	void dcr(reg& f);
 
+	void ret();
+	void jmp();
+
 	void nop();
 
 	int getFlagStatus(int i);
