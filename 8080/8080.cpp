@@ -14,11 +14,11 @@
 int main()
 {
     c8080 my8080;
-    std::string program = "110E0021130006000E05CD1D007611223344550000000000000000000078B1C81A7713230B78B1C22000C9";
+    std::string program = "3E00D606DE05E60AEE0FF63C76";
     //std::string program = "3E323333CD0700060A8076";
     //load program into memory
     my8080.loadProgram(0x0000, program);
-    my8080.stepMode = true;
+    my8080.stepMode = false;
     //program cycles until it finds an opcode it cant deal with
     while (my8080.cycle() != -1) {
         //while loop

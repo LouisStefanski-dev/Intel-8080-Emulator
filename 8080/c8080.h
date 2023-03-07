@@ -36,7 +36,7 @@ public:
 	//Memory
 	//uint8_t mem[0xFFFF] = { 0x0000 }; //64KB of memory
 
-	uint8_t* mem = (uint8_t*)malloc(0xFFFF);
+	uint8_t* mem = (uint8_t *)calloc(0xFFFF, sizeof(uint8_t));
 	//Stack pointer
 	uint16_t sp;
 
@@ -67,6 +67,9 @@ public:
 		H.data = 0x00;
 		L.data = 0x00;
 		FLAGS.data = 0x00;
+	}
+	~c8080() {
+		free(mem);
 	}
 
 	int cycle();

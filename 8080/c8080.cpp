@@ -222,8 +222,13 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0x2a:
+    case 0x2a: //lhld addr
+    {
+        L.data = mem[(mem[pc + 2] << 8) | mem[pc + 1]];
+        H.data = mem[((mem[pc + 2] << 8) | mem[pc + 1]) + 1];
+        pc += 3;
         break;
+    }
     case 0x2b: //dcx h
     {
         uint16_t res = ((H.data << 8) | (L.data)) - 1;
@@ -760,10 +765,12 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xc6:
+    case 0xc6: //adi d8
+        add(A, mem[pc + 1]);
+        pc++; //add 1 to pc for additional byte used
         break;
     case 0xc7: //rst 0
-
+        rst(0);
         break;
     case 0xc8: //rz
     {
@@ -801,9 +808,12 @@ int c8080::cycle()
     case 0xcd: //call a16
         call();
         break;
-    case 0xce:
+    case 0xce: //ACI d8
+        adc(A, mem[pc + 1]);
+        pc++; //add 1 to pc to acount for extra byte in instruction
         break;
-    case 0xcf:
+    case 0xcf: //rst 1
+        rst(1);
         break;
 
     //0xd0 - 0xdf
@@ -852,9 +862,12 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xd6:
+    case 0xd6: //sui d8
+        sub(A, mem[pc + 1]);
+        pc++; //to account for extra byte used
         break;
-    case 0xd7:
+    case 0xd7: //rst 2
+        rst(2);
         break;
     case 0xd8: //rc
     {
@@ -891,9 +904,12 @@ int c8080::cycle()
     case 0xdd: //call
         call();
         break;
-    case 0xde:
+    case 0xde: //sbi d8
+        sbb(A, mem[pc + 1]);
+        pc++; //to account for extra byte used
         break;
-    case 0xdf:
+    case 0xdf: //rst 3
+        rst(3);
         break;
 
     //0xe0 - 0xef
@@ -942,9 +958,12 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xe6:
+    case 0xe6: //ani d8
+        ana(A, mem[pc + 1]);
+        pc++; //add 1 to pc to account for extra byte
         break;
-    case 0xe7:
+    case 0xe7: //rst 4
+        rst(4);
         break;
     case 0xe8: //rpe
     {
@@ -955,7 +974,8 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xe9:
+    case 0xe9: //pchl
+        pc = (H.data << 8) | L.data;
         break;
     case 0xea: //jpe
     {
@@ -980,9 +1000,12 @@ int c8080::cycle()
     case 0xed: //call
         call();
         break;
-    case 0xee:
+    case 0xee: //xri d8
+        xra(A, mem[pc + 1]);
+        pc++; //add 1 to pc to account for extra byte
         break;
-    case 0xef:
+    case 0xef: //rst 5
+        rst(5);
         break;
 
     //0xf0 - 0xff
@@ -1031,9 +1054,12 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xf6:
+    case 0xf6: //ori d8
+        ora(A, mem[pc + 1]);
+        pc++; //to account for extra byte
         break;
-    case 0xf7:
+    case 0xf7: //rst 6
+        rst(6);
         break;
     case 0xf8: //rm
     {
@@ -1071,7 +1097,8 @@ int c8080::cycle()
         break;
     case 0xfe:
         break;
-    case 0xff:
+    case 0xff: //rst 7
+        rst(7);
         break;
     default:
         return -1;
@@ -1132,7 +1159,7 @@ void c8080::add(reg& f, uint8_t s)
 void c8080::adc(reg& f, reg& s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    uint8_t carryData = getFlagStatus(7); //store carry data
+    uint8_t carryData = getFlagStatus(0); //store carry data
 
   //  resetFlags();
     setCarryFlag(f.data, s.data, carryData);
@@ -1149,7 +1176,7 @@ void c8080::adc(reg& f, reg& s)
 void c8080::adc(reg& f, uint8_t s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    uint8_t carryData = getFlagStatus(7); //store carry data
+    uint8_t carryData = getFlagStatus(0); //store carry data
 
   //  resetFlags();
     setCarryFlag(f.data, s, carryData);
@@ -1192,7 +1219,7 @@ void c8080::sub(reg& f, uint8_t s)
 void c8080::sbb(reg& f, reg& s) //TODO: the other emulator is giving carrie
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    uint8_t carryData = getFlagStatus(7); //store carry data
+    uint8_t carryData = getFlagStatus(0); //store carry data
 
     setCarryFlag(f.data, s.data, carryData, SUB);
     setACFlag(f.data, s.data, carryData, SUB);
@@ -1208,7 +1235,7 @@ void c8080::sbb(reg& f, reg& s) //TODO: the other emulator is giving carrie
 void c8080::sbb(reg& f, uint8_t s)
 {
     //Method to set bit: or the flags register with 2^i where i is the bits position(from 0 to 7)
-    uint8_t carryData = getFlagStatus(7); //store carry data
+    uint8_t carryData = getFlagStatus(0); //store carry data
 
     setCarryFlag(f.data, s, carryData, SUB);
     setACFlag(f.data, s, carryData, SUB);
@@ -1342,9 +1369,14 @@ void c8080::call()
     pc = (mem[pc + 2] << 8) | mem[pc + 1];
 }
 
+//pushes the current pc to the stack 
+//sets the new pc to 8 * base
 void c8080::rst(uint8_t base)
 {
-
+    mem[sp - 1] = (pc >> 8);
+    mem[sp - 2] = (pc & 0x0F);
+    sp -= 2;
+    pc = 0x08 * base;
 }
 
 
