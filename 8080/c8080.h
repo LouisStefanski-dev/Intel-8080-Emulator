@@ -52,6 +52,8 @@ public:
 	//i/o devices
 	uint8_t ioDevices[0xFF] = { 0x00 };
 
+	bool interruptEnable = 0; //1 = true, 0 = false
+
 	//if stepMode is true the program will allow the user to step through it instruction by instruction
 	//if false the program runs without intervention unless a hlt instruction is reached
 	bool stepMode = false;

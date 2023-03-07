@@ -939,8 +939,18 @@ int c8080::cycle()
         pc += 3;
         break;
     }
-    case 0xe3:
+    case 0xe3: //xthl
+    {
+        uint8_t temp = L.data;
+        L.data = mem[sp];
+        mem[sp] = temp;
+
+        temp = H.data;
+        H.data = mem[sp + 1];
+        mem[sp + 1] = temp;
+        pc++;
         break;
+    }
     case 0xe4: //cpo
     {
         if (!getFlagStatus(2)) {
@@ -986,8 +996,19 @@ int c8080::cycle()
         pc += 3;
         break;
     }
-    case 0xeb:
+    case 0xeb: //xchg
+    {
+        uint8_t temp = 0x00;
+        temp = H.data;
+        H.data = D.data;
+        D.data = temp;
+
+        temp = L.data;
+        L.data = E.data;
+        E.data = temp;
+        pc++;
         break;
+    }
     case 0xec: //cpe
     {
         if (getFlagStatus(2)) {
@@ -1035,7 +1056,9 @@ int c8080::cycle()
         pc += 3;
         break;
     }
-    case 0xf3:
+    case 0xf3: //di
+        interruptEnable = 0;
+        pc++;
         break;
     case 0xf4: //cp
     {
@@ -1070,7 +1093,9 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0xf9:
+    case 0xf9: //sphl
+        sp = (H.data << 8) | L.data;
+        pc++;
         break;
     case 0xfa: //jm
     {
@@ -1081,7 +1106,9 @@ int c8080::cycle()
         pc += 3;
         break;
     }
-    case 0xfb:
+    case 0xfb: //ei
+        interruptEnable = 1;
+        pc++;
         break;
     case 0xfc: //cm 
     {
