@@ -65,7 +65,9 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0x0a:
+    case 0x0a: //ldax b
+        A.data = mem[(B.data << 8) | C.data];
+        pc++;
         break;
     case 0x0b: //dcx b
     {
@@ -132,7 +134,9 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0x1a:
+    case 0x1a: //ldax d
+        A.data = mem[(D.data << 8) | E.data];
+        pc++;
         break;
     case 0x1b: //dcx d
     {
@@ -270,10 +274,36 @@ int c8080::cycle()
         pc++;
         break;
     }
-    case 0x34:
+    case 0x34: //inr M
+    {
+        uint16_t addr = (H.data << 8) | L.data;
+        uint8_t val = mem[addr];
+        setACFlag(val, 1, 0, ADD);
+
+        val++;
+        mem[addr] = val;
+
+        setZeroFlag(val);
+        setSignFlag(val);
+        setParityFlag(val);
+        pc++;
         break;
-    case 0x35:
+    }
+    case 0x35: //dcr M
+    {
+        uint16_t addr = (H.data << 8) | L.data;
+        uint8_t val = mem[addr];
+        setACFlag(val, 1, 0, SUB);
+
+        val--;
+        mem[addr] = val;
+
+        setZeroFlag(val);
+        setSignFlag(val);
+        setParityFlag(val);
+        pc++;
         break;
+    }
     case 0x36: //mvi m, D8
         mem[getM()] = mem[pc + 1];
         pc += 2;
@@ -285,10 +315,21 @@ int c8080::cycle()
     case 0x38:
         nop();
         break;
-    case 0x39:
+    case 0x39: //dad sp
+    {
+        uint32_t res = ((H.data << 8) | L.data) + sp;
+        (res > UINT16_MAX) ? (FLAGS.data |= 0x01) : (FLAGS.data &= 0xFE); //set carry flag
+        H.data = (res & 0xFFFF) >> 8;
+        L.data = res & 0xFF;
+        pc++;
         break;
-    case 0x3a:
+    }
+    case 0x3a: //lda a16
+    {
+        A.data = mem[(mem[pc + 2] << 8) | mem[pc + 1]];
+        pc += 3;
         break;
+    }
     case 0x3b: //dcx sp
     {
         sp -= 1;
@@ -701,21 +742,29 @@ int c8080::cycle()
     case 0xb7: //ora a
         ora(A, A);
         break;
-    case 0xb8:
+    case 0xb8: //cmp b
+        cmp(A, B);
         break;
-    case 0xb9:
+    case 0xb9: //cmp c
+        cmp(A, C);
         break;
-    case 0xba:
+    case 0xba: //cmp d
+        cmp(A, D);
         break;
-    case 0xbb:
+    case 0xbb: //cmp e
+        cmp(A, E);
         break;
-    case 0xbc:
+    case 0xbc: //cmp h
+        cmp(A, H);
         break;
-    case 0xbd:
+    case 0xbd: //cmp l
+        cmp(A, L);
         break;
-    case 0xbe:
+    case 0xbe: //cmp M
+        cmp(A, mem[getM()]);
         break;
-    case 0xbf:
+    case 0xbf: //cmp a
+        cmp(A, A);
         break;
 
     //0xc0 - 0xcf
@@ -1119,17 +1168,11 @@ int c8080::cycle()
         pc += 3;
         break;
     }
-    case 0xfd: //call
-        call();
-        break;
-    case 0xfe:
-        break;
-    case 0xff: //rst 7
-        rst(7);
-        break;
-    default:
-        return -1;
-        break;
+
+    case 0xfd: call();      break; //call
+    case 0xfe: cmp(A, mem[pc + 1]); pc++;   break; //cmp d8, adds 1 extra byte to pc
+    case 0xff:  rst(7);     break; //rst 7
+    default:    return -1;  break;
     }
     stateUpdate();
     if(stepMode)
@@ -1353,6 +1396,27 @@ void c8080::ora(reg& f, uint8_t s)
     pc++;
 }
 
+//sets condition flags and increments pc
+void c8080::cmp(reg& f, reg& s)
+{
+    setCarryFlag(f.data, s.data, 0, SUB);
+    setACFlag(f.data, s.data, 0, SUB);
+    setSignFlag(f.data - s.data);
+    setZeroFlag(f.data - s.data);
+    setParityFlag(f.data - s.data);
+    pc++;
+}
+
+void c8080::cmp(reg& f, uint8_t s)
+{
+    setCarryFlag(f.data, s, 0, SUB);
+    setACFlag(f.data, s, 0, SUB);
+    setSignFlag(f.data - s);
+    setZeroFlag(f.data - s);
+    setParityFlag(f.data - s);
+    pc++;
+}
+
 void c8080::inr(reg& f)
 {
     setACFlag(f.data, 1, 0, ADD);
@@ -1373,14 +1437,17 @@ void c8080::dcr(reg& f)
     pc++;
 }
 
+//TODO: fix hack arounds
 //return instruction
 //does not increment pc
 void c8080::ret()
 {
-    pc = 0x00; //reset pc
     pc = mem[sp];
     pc |= (mem[sp + 1] << 8);
     sp += 2;
+    if (sp = 0xFFFF) {
+        sp = 0;
+    }
 }
 //jumps to addr
 void c8080::jmp()
@@ -1388,10 +1455,16 @@ void c8080::jmp()
     pc = (mem[pc + 2] << 8) | mem[pc + 1];
 }
 
+//TODO: fix hackarounds
 void c8080::call() 
 {
-    mem[sp - 1] = (pc >> 8);
-    mem[sp - 2] = (pc & 0x0F);
+    uint16_t addr = sp - 1;
+    uint16_t retAddr = pc + 3; //+3 to return ahead of call instruction
+    if (addr == 0xFFFF) {
+        sp = 0xFFFF;
+    }
+    mem[sp - 1] = (retAddr >> 8);
+    mem[sp - 2] = (retAddr & 0xFF);
     sp -= 2;
     pc = (mem[pc + 2] << 8) | mem[pc + 1];
 }
@@ -1425,10 +1498,10 @@ int c8080::getFlagStatus(int i)
 }
 
 //returns 1 for even parity, 0 for odd parity
-int c8080::calculateParity(uint8_t f)
+int c8080::calculateParity(uint16_t f)
 {
     int onBits = 0;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {
         if ((f >> i) & 0x01) {
             onBits++;
         }
@@ -1519,7 +1592,9 @@ void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
     {
         //Carry flag is set for subtraction if the twos comliment of the subtraction does not produce a carry 
         //Current works for all values tested besides a number minus itself
-        if ((((~(f - s - c)) + 1) & 0x100) != 0x100) {
+
+        //TODO: hacked solution for number equal to itself, fix later
+        if (((((~(f - s - c)) + 1) & 0x100) != 0x100) && (f != s)) {
             enable = true;
         }
         break;
@@ -1551,6 +1626,40 @@ void c8080::setParityFlag(uint8_t f)
 void c8080::resetFlags()
 {
     FLAGS.data = 0x02; //sinces the flags register always have bit 1 = 1
+}
+
+//prints out a table of memory, 16x16 view
+void c8080::printMemory()
+{
+    std::cout << "Memory View   0x00-0xFF" << std::endl;
+
+    //format border top
+    for (int i = 0; i < 120; i++) {
+        std::cout << "_";
+    }
+    std::cout << std::endl;
+
+    //format top row(index)
+    std::cout << " R/C|" << "  ";
+    for (int i = 0; i < 16; i++) {
+        std::cout << std::format("{:#04x}", i) << "   ";
+    }
+    std::cout << "|\n" << std::endl;
+
+    //output memory data
+    for (int i = 0; i < 16; i++) {
+        std::cout <<  std::format("{:#04x}", i) << "|  ";
+        for (int j = 0; j < 16; j++) {
+            std::cout << std::format("{:#04x}", mem[(i * 16) + j]) << "   ";
+        }
+        std::cout << "|" << std::endl;
+    }
+
+    //format border bottom
+    for (int i = 0; i < 120; i++) {
+        std::cout << "_";
+    }
+    std::cout << std::endl;
 }
 
 //returns the value given by H << 8 | L 

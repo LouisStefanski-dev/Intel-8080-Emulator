@@ -69,6 +69,7 @@ public:
 		H.data = 0x00;
 		L.data = 0x00;
 		FLAGS.data = 0x00;
+		memset(mem, 0, sizeof(mem));
 	}
 	~c8080() {
 		free(mem);
@@ -100,6 +101,9 @@ public:
 	void ora(reg& f, reg& s);
 	void ora(reg& f, uint8_t s);
 
+	void cmp(reg& f, reg& s);
+	void cmp(reg& f, uint8_t s);
+
 	void inr(reg& f);
 	void dcr(reg& f);
 
@@ -111,7 +115,7 @@ public:
 	void nop();
 
 	int getFlagStatus(int i);
-	int calculateParity(uint8_t f);
+	int calculateParity(uint16_t f);
 
 	void loadProgram(uint16_t startAddr, std::string program);
 
@@ -124,6 +128,8 @@ public:
 	void setParityFlag(uint8_t f);
 
 	void resetFlags();
+
+	void printMemory();
 
 	uint16_t getM();
 
