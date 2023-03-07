@@ -4,9 +4,7 @@
 //  1. Grab opcode from mem[pc]
 //  2. Switch over opcode to perform function
 //      2.1. Fetch additional addresses from memory
-//  3. Increment pc
-//  4. Output status of all registers for debugging 
-//NOTE: Each case must increment PC as needed.
+//  3. Increment pc by appropiate amount
 int c8080::cycle()
 {
     uint8_t opcode = mem[pc];
@@ -534,7 +532,7 @@ int c8080::cycle()
         break;
     case 0x76: //HLT TODO: check on halt functionality
         pc++; 
-        stateUpdate();
+       // stateUpdate();
         return -1; //break 
         break;
     case 0x77: //mov M, a
@@ -1174,9 +1172,13 @@ int c8080::cycle()
     case 0xff:  rst(7);     break; //rst 7
     default:    return -1;  break;
     }
-    stateUpdate();
-    if(stepMode)
-        system("pause");
+    //if (stepMode) { //step mode will show the current cpu state and memory view for each instruction
+    //    std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; //clear screen
+    //    stateUpdate();
+    //    printMemory();
+    //    system("pause"); cycles++; return 0;
+    //}
+    //stateUpdate();
     cycles++;
     return 0;
 }
@@ -1628,39 +1630,39 @@ void c8080::resetFlags()
     FLAGS.data = 0x02; //sinces the flags register always have bit 1 = 1
 }
 
-//prints out a table of memory, 16x16 view
-void c8080::printMemory()
-{
-    std::cout << "Memory View   0x00-0xFF" << std::endl;
-
-    //format border top
-    for (int i = 0; i < 120; i++) {
-        std::cout << "_";
-    }
-    std::cout << std::endl;
-
-    //format top row(index)
-    std::cout << " R/C|" << "  ";
-    for (int i = 0; i < 16; i++) {
-        std::cout << std::format("{:#04x}", i) << "   ";
-    }
-    std::cout << "|\n" << std::endl;
-
-    //output memory data
-    for (int i = 0; i < 16; i++) {
-        std::cout <<  std::format("{:#04x}", i) << "|  ";
-        for (int j = 0; j < 16; j++) {
-            std::cout << std::format("{:#04x}", mem[(i * 16) + j]) << "   ";
-        }
-        std::cout << "|" << std::endl;
-    }
-
-    //format border bottom
-    for (int i = 0; i < 120; i++) {
-        std::cout << "_";
-    }
-    std::cout << std::endl;
-}
+////prints out a table of memory, 16x16 view
+//void c8080::printMemory()
+//{
+//    std::cout << "Memory View   0x00-0xFF" << std::endl;
+//
+//    //format border top
+//    for (int i = 0; i < 120; i++) {
+//        std::cout << "_";
+//    }
+//    std::cout << std::endl;
+//
+//    //format top row(index)
+//    std::cout << " R/C|" << "  ";
+//    for (int i = 0; i < 16; i++) {
+//        std::cout << std::format("{:#04x}", i) << "   ";
+//    }
+//    std::cout << "|\n" << std::endl;
+//
+//    //output memory data
+//    for (int i = 0; i < 16; i++) {
+//        std::cout <<  std::format("{:#04x}", i) << "|  ";
+//        for (int j = 0; j < 16; j++) {
+//            std::cout << std::format("{:#04x}", mem[(i * 16) + j]) << "   ";
+//        }
+//        std::cout << "|" << std::endl;
+//    }
+//
+//    //format border bottom
+//    for (int i = 0; i < 120; i++) {
+//        std::cout << "_";
+//    }
+//    std::cout << std::endl;
+//}
 
 //returns the value given by H << 8 | L 
 uint16_t c8080::getM()
@@ -1669,24 +1671,24 @@ uint16_t c8080::getM()
 }
 
 
-//outputs the status of all registers 
-void c8080::stateUpdate() {
-    std::cout << "----------------------------------------------------------------------------------------" << std::endl;
-    std::cout <<
-        "A: " << std::format("{:#x}", A.data) << " B: " << std::format("{:#x}", B.data) <<
-        " C: " << std::format("{:#x}", C.data) << " D: " << std::format("{:#x}", D.data) << " E: " << std::format("{:#x}", E.data) <<
-        " H: " << std::format("{:#x}", H.data) << " L: " << std::format("{:#x}", L.data)
-        << std::endl;
-    std::cout << 
-                "FLAGS: S: " << std::format("{:#x}", getFlagStatus(7)) <<
-                " Z: " << std::format("{:#x}", getFlagStatus(6)) <<
-                " AC: " << std::format("{:#x}", getFlagStatus(4)) << 
-                " P: " << std::format("{:#x}", getFlagStatus(2)) <<
-                " C: " << std::format("{:#x}", getFlagStatus(0)) << std::endl;
-    std::cout <<
-        "Current Instruction: " << std::format("{:#x}", mem[pc]) << "   " <<
-        "Current Stack Pointer: " << std::format("{:#x}", sp)
-        << std::endl;
-    std::cout << "Current Cycle: " << cycles  << " Current PC: " << std::format("{:#x}", pc) << std::endl;
-    std::cout << "----------------------------------------------------------------------------------------" << std::endl;
-}
+////outputs the status of all registers 
+//void c8080::stateUpdate() {
+//    std::cout << "----------------------------------------------------------------------------------------" << std::endl;
+//    std::cout <<
+//        "A: " << std::format("{:#x}", A.data) << " B: " << std::format("{:#x}", B.data) <<
+//        " C: " << std::format("{:#x}", C.data) << " D: " << std::format("{:#x}", D.data) << " E: " << std::format("{:#x}", E.data) <<
+//        " H: " << std::format("{:#x}", H.data) << " L: " << std::format("{:#x}", L.data)
+//        << std::endl;
+//    std::cout << 
+//                "FLAGS: S: " << std::format("{:#x}", getFlagStatus(7)) <<
+//                " Z: " << std::format("{:#x}", getFlagStatus(6)) <<
+//                " AC: " << std::format("{:#x}", getFlagStatus(4)) << 
+//                " P: " << std::format("{:#x}", getFlagStatus(2)) <<
+//                " C: " << std::format("{:#x}", getFlagStatus(0)) << std::endl;
+//    std::cout <<
+//        "Current Instruction: " << std::format("{:#x}", mem[pc]) << "   " <<
+//        "Current Stack Pointer: " << std::format("{:#x}", sp)
+//        << std::endl;
+//    std::cout << "Current Cycle: " << cycles  << " Current PC: " << std::format("{:#x}", pc) << std::endl;
+//    std::cout << "----------------------------------------------------------------------------------------" << std::endl;
+//}

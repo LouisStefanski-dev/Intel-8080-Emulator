@@ -1,6 +1,15 @@
 #include <iostream>
 #include <string>
+#include <chrono>
 #include "c8080.h"
+#include "DebuggerC8080.h"
+
+//Ways to improve performance:
+//  1. Remove calls to pow and replace with constant values
+//  
+//
+//
+
 
 //TODO: 
 //      *Make switch statement look nicer
@@ -17,17 +26,32 @@
 int main()
 {
     c8080 my8080;
-   // std::string program = "2123000E0ECD09007679FE00CA22007EFE61DA1D00FE7BD21D00D62077230DC30900C96865";
-    std::string program = "110E0021130006000E05CD1D007611223344550000000000000000000078B1C81A7713230B78B1C22000C9";
+    DebuggerC8080 debugger;
+
+    std::string program = "2123000E0ECD09007679FE00CA22007EFE61DA1D00FE7BD21D00D62077230DC30900C96865"; //capitalize
+    //std::string program = "110E0021130006000E05CD1D007611223344550000000000000000000078B1C81A7713230B78B1C22000C9"; //memcpy
   
     //load program into memory
     my8080.loadProgram(0x0000, program);
 
-    my8080.stepMode = false;
-
+    bool debugMode = true;
+    bool stepMode = true;
     //program cycles until it finds an opcode it cant deal with
+    auto start = std::chrono::high_resolution_clock::now();
     while (my8080.cycle() != -1) {
         //while loop
+        if (debugMode) {
+            debugger.debugCycle(my8080, stepMode);
+        }
     }
-    my8080.printMemory();
+    auto end = std::chrono::high_resolution_clock::now();
+
+    //print final status of register and memory
+    debugger.debugCycle(my8080, true);
+
+    //statistics about performance 
+    auto timeElapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    std::cout << "Program took " << timeElapsed << "ns to run." << std::endl;
+    std::cout << "Time Elapsed(ms): " << (timeElapsed / pow(10, 6)) << std::endl;
+    std::cout << std::setprecision(12) << "Instructions Per Second: " << (1/(timeElapsed / pow(10, 9))) * my8080.cycles << std::endl;
 }

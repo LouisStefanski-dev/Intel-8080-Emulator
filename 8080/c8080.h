@@ -12,10 +12,6 @@
 //	S | Z | 0 | A | 0 | P | 1 | C |
 //--------------------------------+
 
-//NOTE on flags register: The current get[flag] functions assume the flags register is reset using
-//	resetFlags() before being called. As such when the function would normally clear a flag bit
-//	it instead ignores it and returns without changing any flag bits.
-
 enum operation{ ADD, SUB, AND, OR, XOR};
 
 struct reg {
@@ -34,9 +30,8 @@ public:
 	reg A, B, C, D, E, H, L, FLAGS;
 
 	//Memory
-	//uint8_t mem[0xFFFF] = { 0x0000 }; //64KB of memory
-
 	uint8_t* mem = (uint8_t *)calloc(0xFFFF, sizeof(uint8_t));
+
 	//Stack pointer
 	uint16_t sp;
 
@@ -55,7 +50,9 @@ public:
 	bool interruptEnable = 0; //1 = true, 0 = false
 
 	//if stepMode is true the program will allow the user to step through it instruction by instruction
-	//if false the program runs without intervention unless a hlt instruction is reached
+	// displaying each cpu state(register values, sp, etc) and a view of the memory.
+	//if false the program runs without intervention unless a hlt instruction is reached, only outputting
+	//the cpu state when a hlt(0x76) instruction is reached
 	bool stepMode = false;
 
 	c8080() {
@@ -68,7 +65,7 @@ public:
 		E.data = 0x00;
 		H.data = 0x00;
 		L.data = 0x00;
-		FLAGS.data = 0x00;
+		resetFlags();
 		memset(mem, 0, sizeof(mem));
 	}
 	~c8080() {
@@ -110,12 +107,11 @@ public:
 	void ret();
 	void jmp();
 	void call();
-	void rst(uint8_t base); //need to code
+	void rst(uint8_t base);
 
 	void nop();
 
 	int getFlagStatus(int i);
-	int calculateParity(uint16_t f);
 
 	void loadProgram(uint16_t startAddr, std::string program);
 
@@ -129,11 +125,11 @@ public:
 
 	void resetFlags();
 
-	void printMemory();
-
 	uint16_t getM();
 
 	//prints out all registers and current instruction
-	void stateUpdate();
+	//void stateUpdate();
+	//void printMemory();
+	int calculateParity(uint16_t f);
 };
 

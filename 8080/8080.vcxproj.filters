@@ -21,9 +21,15 @@
     <ClCompile Include="c8080.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DebuggerC8080.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="c8080.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DebuggerC8080.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
