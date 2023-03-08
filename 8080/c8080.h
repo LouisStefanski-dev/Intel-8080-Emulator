@@ -2,9 +2,7 @@
 #include <string>
 #include <sstream>
 #include <cstdlib>
-#include <iostream>
 #include <math.h>
-#include <format>
 
 //		FLAGS register order
 // -------------------------------+
@@ -44,16 +42,7 @@ public:
 	//cycle counter
 	uint16_t cycles = 0x00;
 
-	//i/o devices
-	uint8_t ioDevices[0xFF] = { 0x00 };
-
 	bool interruptEnable = 0; //1 = true, 0 = false
-
-	//if stepMode is true the program will allow the user to step through it instruction by instruction
-	// displaying each cpu state(register values, sp, etc) and a view of the memory.
-	//if false the program runs without intervention unless a hlt instruction is reached, only outputting
-	//the cpu state when a hlt(0x76) instruction is reached
-	bool stepMode = false;
 
 	c8080() {
 		sp = 0x00;
@@ -71,6 +60,14 @@ public:
 	~c8080() {
 		free(mem);
 	}
+
+	//i/o
+	//formatted as High 8 bits are the port or device number, low 8 bits are data
+	uint16_t output = 0x00; 
+	uint16_t input = 0x00;
+
+	bool out = false;
+	bool in = false;
 
 	int cycle();
 
@@ -126,10 +123,6 @@ public:
 	void resetFlags();
 
 	uint16_t getM();
-
-	//prints out all registers and current instruction
-	//void stateUpdate();
-	//void printMemory();
 	int calculateParity(uint16_t f);
 };
 

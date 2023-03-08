@@ -130,10 +130,16 @@
   <ItemGroup>
     <ClCompile Include="8080.cpp" />
     <ClCompile Include="c8080.cpp" />
+    <ClCompile Include="c8080commandLine.cpp" />
+    <ClCompile Include="c8080ioDevice.cpp" />
+    <ClCompile Include="c8080ioHandler.cpp" />
     <ClCompile Include="DebuggerC8080.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="c8080.h" />
+    <ClInclude Include="c8080commandLine.h" />
+    <ClInclude Include="c8080ioDevice.h" />
+    <ClInclude Include="c8080ioHandler.h" />
     <ClInclude Include="DebuggerC8080.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

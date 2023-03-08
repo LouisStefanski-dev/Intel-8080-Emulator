@@ -24,12 +24,30 @@
     <ClCompile Include="DebuggerC8080.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="c8080ioDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c8080commandLine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c8080ioHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="c8080.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DebuggerC8080.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="c8080ioDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="c8080commandLine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="c8080ioHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

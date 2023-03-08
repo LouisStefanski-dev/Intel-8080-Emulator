@@ -533,7 +533,8 @@ int c8080::cycle()
     case 0x76: //HLT TODO: check on halt functionality
         pc++; 
        // stateUpdate();
-        return -1; //break 
+       // return std::pair<bool, uint16_t>(0, 0xFFFF); //break 
+        return -1;
         break;
     case 0x77: //mov M, a
         mem[(H.data << 8) | L.data] = A.data;
@@ -890,8 +891,14 @@ int c8080::cycle()
         pc += 3;
         break;
     }
-    case 0xd3:
+    case 0xd3: //out d8
+    {
+        uint8_t data = A.data;
+        output = (mem[pc + 1] << 8) | data;
+        pc += 2;
+        out = true;
         break;
+    }
     case 0xd4: //cnc
     {
         if (!getFlagStatus(0)) {
@@ -937,8 +944,14 @@ int c8080::cycle()
         pc += 3;
         break;
     }
-    case 0xdb:
+    case 0xdb: //in d8
+    {
+        uint8_t data = A.data;
+        pc += 2;
+        output = data;
+        in = true;
         break;
+    }
     case 0xdc: //cc 
     {
         if (getFlagStatus(0)) {
@@ -1170,15 +1183,8 @@ int c8080::cycle()
     case 0xfd: call();      break; //call
     case 0xfe: cmp(A, mem[pc + 1]); pc++;   break; //cmp d8, adds 1 extra byte to pc
     case 0xff:  rst(7);     break; //rst 7
-    default:    return -1;  break;
+    default:  break;
     }
-    //if (stepMode) { //step mode will show the current cpu state and memory view for each instruction
-    //    std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n"; //clear screen
-    //    stateUpdate();
-    //    printMemory();
-    //    system("pause"); cycles++; return 0;
-    //}
-    //stateUpdate();
     cycles++;
     return 0;
 }
@@ -1432,7 +1438,7 @@ void c8080::inr(reg& f)
 void c8080::dcr(reg& f)
 {
     setACFlag(f.data, 1, 0, SUB);
-    f.data -= 1;
+    f.data = f.data - 1;
     setSignFlag(f.data);
     setZeroFlag(f.data);
     setParityFlag(f.data);
@@ -1529,7 +1535,7 @@ void c8080::loadProgram(uint16_t startAddr, std::string program)
 void c8080::setZeroFlag(uint8_t f)
 {
     if (f == 0) {
-        FLAGS.data |= (uint8_t)pow(2, 6);
+        FLAGS.data |= 0x40;
         return;
     }
     FLAGS.data &= 0xBF; //turn off AC Flag bit
@@ -1562,7 +1568,7 @@ void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
         break;
     }
     if (enable)
-        FLAGS.data |= (uint8_t)pow(2, 4);
+        FLAGS.data |= 0x10;
     else
         FLAGS.data &= 0xEF;
 }
@@ -1571,7 +1577,7 @@ void c8080::setACFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
 void c8080::setSignFlag(uint8_t f)
 {
     if (f >> 7) {
-        FLAGS.data |= (uint8_t)pow(2, 7);
+        FLAGS.data |= 0x80;
         return;
     }
     FLAGS.data &= 0x7F; //turn off AC Flag bit
@@ -1618,7 +1624,7 @@ void c8080::setCarryFlag(uint8_t f, uint8_t s, uint8_t c, operation op)
 void c8080::setParityFlag(uint8_t f)
 {
     if (calculateParity(f)) {
-        FLAGS.data |= (uint8_t)pow(2, 2);
+        FLAGS.data |= 0x04;
         return;
     }
     FLAGS.data &= 0xFB; //turn off P Flag bit
@@ -1630,65 +1636,8 @@ void c8080::resetFlags()
     FLAGS.data = 0x02; //sinces the flags register always have bit 1 = 1
 }
 
-////prints out a table of memory, 16x16 view
-//void c8080::printMemory()
-//{
-//    std::cout << "Memory View   0x00-0xFF" << std::endl;
-//
-//    //format border top
-//    for (int i = 0; i < 120; i++) {
-//        std::cout << "_";
-//    }
-//    std::cout << std::endl;
-//
-//    //format top row(index)
-//    std::cout << " R/C|" << "  ";
-//    for (int i = 0; i < 16; i++) {
-//        std::cout << std::format("{:#04x}", i) << "   ";
-//    }
-//    std::cout << "|\n" << std::endl;
-//
-//    //output memory data
-//    for (int i = 0; i < 16; i++) {
-//        std::cout <<  std::format("{:#04x}", i) << "|  ";
-//        for (int j = 0; j < 16; j++) {
-//            std::cout << std::format("{:#04x}", mem[(i * 16) + j]) << "   ";
-//        }
-//        std::cout << "|" << std::endl;
-//    }
-//
-//    //format border bottom
-//    for (int i = 0; i < 120; i++) {
-//        std::cout << "_";
-//    }
-//    std::cout << std::endl;
-//}
-
 //returns the value given by H << 8 | L 
 uint16_t c8080::getM()
 {
     return ((H.data << 8) | L.data);
 }
-
-
-////outputs the status of all registers 
-//void c8080::stateUpdate() {
-//    std::cout << "----------------------------------------------------------------------------------------" << std::endl;
-//    std::cout <<
-//        "A: " << std::format("{:#x}", A.data) << " B: " << std::format("{:#x}", B.data) <<
-//        " C: " << std::format("{:#x}", C.data) << " D: " << std::format("{:#x}", D.data) << " E: " << std::format("{:#x}", E.data) <<
-//        " H: " << std::format("{:#x}", H.data) << " L: " << std::format("{:#x}", L.data)
-//        << std::endl;
-//    std::cout << 
-//                "FLAGS: S: " << std::format("{:#x}", getFlagStatus(7)) <<
-//                " Z: " << std::format("{:#x}", getFlagStatus(6)) <<
-//                " AC: " << std::format("{:#x}", getFlagStatus(4)) << 
-//                " P: " << std::format("{:#x}", getFlagStatus(2)) <<
-//                " C: " << std::format("{:#x}", getFlagStatus(0)) << std::endl;
-//    std::cout <<
-//        "Current Instruction: " << std::format("{:#x}", mem[pc]) << "   " <<
-//        "Current Stack Pointer: " << std::format("{:#x}", sp)
-//        << std::endl;
-//    std::cout << "Current Cycle: " << cycles  << " Current PC: " << std::format("{:#x}", pc) << std::endl;
-//    std::cout << "----------------------------------------------------------------------------------------" << std::endl;
-//}
