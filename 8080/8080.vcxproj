@@ -141,6 +141,8 @@
     <ClInclude Include="c8080ioDevice.h" />
     <ClInclude Include="c8080ioHandler.h" />
     <ClInclude Include="DebuggerC8080.h" />
+    <ClInclude Include="olcPGEX_QuickGUI.h" />
+    <ClInclude Include="olcPixelGameEngine.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

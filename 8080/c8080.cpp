@@ -1636,6 +1636,21 @@ void c8080::resetFlags()
     FLAGS.data = 0x02; //sinces the flags register always have bit 1 = 1
 }
 
+void c8080::reset()
+{
+    sp = 0x00;
+    pc = 0x00;
+    A.data = 0x00;
+    B.data = 0x00;
+    C.data = 0x00;
+    D.data = 0x00;
+    E.data = 0x00;
+    H.data = 0x00;
+    L.data = 0x00;
+    resetFlags();
+    memset(mem, 0, sizeof(mem));
+}
+
 //returns the value given by H << 8 | L 
 uint16_t c8080::getM()
 {

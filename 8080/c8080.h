@@ -121,6 +121,7 @@ public:
 	void setParityFlag(uint8_t f);
 
 	void resetFlags();
+	void reset();
 
 	uint16_t getM();
 	int calculateParity(uint16_t f);
