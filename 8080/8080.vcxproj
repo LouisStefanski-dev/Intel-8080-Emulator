@@ -144,6 +144,9 @@
     <ClInclude Include="IO\c8080ioDevice.h" />
     <ClInclude Include="IO\c8080ioHandler.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="Test Programs\CountDown\CountDownAssembled.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
