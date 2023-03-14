@@ -2,19 +2,19 @@
 #include <string>
 #include <chrono>
 #include <thread>
-#include "c8080.h"
-#include "DebuggerC8080.h"
+#include "CPU\c8080.h"
+#include "Debugger\DebuggerC8080.h"
 
-#include "c8080commandLine.h"
-#include "c8080ioHandler.h"
+#include "IO\c8080commandLine.h"
+#include "IO\c8080ioHandler.h"
 
 
 #define OLC_PGE_APPLICATION
-#include "olcPixelGameEngine.h"
+#include "Include\olcPixelGameEngine.h"
 
 // PGEX Require the presence of olc::PixelGameEngine
 #define OLC_PGEX_QUICKGUI
-#include "olcPGEX_QuickGUI.h"
+#include "Include\olcPGEX_QuickGUI.h"
 
 
 //Ways to improve performance:
@@ -36,11 +36,19 @@
 #define showPerformance false
 
 c8080 my8080;
-std::string program = "1120000E181AD301130DCA1000C30500DB004F79D3000DFE00CA1F00C3130076456E746572206E756D626572206F66206C6F6F70733A2000";
+std::string program = "C30D001AD30113FE00C8C30300112900CD0300DB004F114100CD030079D3000DFE00CA2800C31C0076456E746572206E756D626572206F66206C6F6F70733A2000546865206F75747075742069733A2000";
+
 bool startCPU = false;
 bool debugMode = false;
 bool stepMode = false;
 
+struct memoryField {
+	olc::vu2d pos;
+	olc::vu2d size;
+	std::vector<olc::QuickGUI::Label*> memElements;
+};
+
+//this is what runs the processor each cycle
 void processorCycle() {
 	while (true) {
 		if (debugMode) {
@@ -58,7 +66,7 @@ class olcDemo_QuickGUI : public olc::PixelGameEngine
 public:
 	olcDemo_QuickGUI()
 	{
-		sAppName = "c8080";
+		sAppName = "c8080 Emulator";
 	}
 
 protected:
@@ -68,6 +76,7 @@ protected:
 	bool showMemory = false;
 
 	olc::QuickGUI::Manager guiManager;
+	olc::QuickGUI::Manager showMemManager;
 
 	olc::QuickGUI::TextBox* gui = nullptr;
 	olc::QuickGUI::TextBox* flagsBox = nullptr;
@@ -90,8 +99,7 @@ protected:
 	olc::QuickGUI::Button* commandPromptEnterButton = nullptr;
 
 	//memory view
-	//std::vector<std::string> mem;
-	//olc::QuickGUI::ListBox* memoryView = nullptr;
+	memoryField memoryF;
 
 	std::string output = "";
 public:
@@ -121,24 +129,25 @@ public:
 
 		showMemoryButton = new olc::QuickGUI::Button(guiManager, "Show Memory", { 640.0f, 450.0f }, { 80.0f, 40.0f });
 
-		commandLineListBox = new olc::QuickGUI::ListBox(guiManager, commandLine, { 25.0f, 25.0f }, { 550.0f, 500.0f }, false);
+		commandLineListBox = new olc::QuickGUI::ListBox(guiManager, commandLine, { 25.0f, 25.0f }, { 550.0f, 500.0f }, true);
 
 		commandPromptEntry = new olc::QuickGUI::TextBox(guiManager, "", { 40.0f, 525.0f }, { 475.0f, 25.0f });
 		commandPromptEnterButton = new olc::QuickGUI::Button(guiManager, "->", { 515.0f, 525.0f }, { 25.0f, 25.0f });
 
-		//memoryView = new olc::QuickGUI::ListBox(guiManager, mem, { 100.0f, 100.0f }, { 650.0f, 170.0f });
-		//memoryView->bVisible = false;
+		initMemElements(16 * 16);
+
 		return true;
 	}
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		guiManager.Update(this);
+		showMemManager.Update(this);
 
 		//c8080 i/o
 		if (my8080.out) {
 			switch (my8080.output >> 8) {
-			case 0x01:
+			case 0x01: //ASCII
 			{
 				if (my8080.A.data == 0x00) {
 					commandLine.push_back(output);
@@ -152,9 +161,9 @@ public:
 				my8080.out = false;
 				break;
 			}
-			case 0x00:
+			case 0x00: //HEX
 			{
-				std::string s = std::format("{:#x}", my8080.A.data);
+				std::string s = ": " + std::format("{:#x}", my8080.A.data);
 				commandLine.push_back(s);
 				my8080.out = false;
 				break;
@@ -164,7 +173,7 @@ public:
 
 		//show memory
 		if (showMemory) {
-			//getMemoryText();
+			getMemoryText();
 		}
 
 		//buttons
@@ -180,70 +189,104 @@ public:
 		if (resetButton->bPressed)
 			my8080.reset();
 
-		//if (showMemoryButton->bPressed) {
-		//	if (showMemory) {
-		//		showMemory = false;
-		//		memoryView->bVisible = false;
-		//	}
-		//	else {
-		//		showMemory = true;
-		//		memoryView->bVisible = true;
-		//	}
-		//}
+		if (showMemoryButton->bPressed) {
+			if (showMemory) {
+				showMemory = false;
+			}
+			else {
+				showMemory = true;
+			}
+		}
 
 		if (commandPromptEnterButton->bPressed) {
 			if (my8080.in) {
-				std::string s = commandPromptEntry->sText;
-				uint16_t val = std::stoi(s);
-				my8080.A.data = val;
-				my8080.in = false;
+				switch (my8080.input >> 8) {
+					case 0x01: //ASCII
+					{
+						std::string s = commandPromptEntry->sText;
+						uint16_t val = std::stoi(s);
+						my8080.A.data = val;
+						my8080.in = false;
+						break;
+					}
+					case 0x00: //HEX
+					{
+						std::string s = commandPromptEntry->sText;
+						uint16_t val = std::stoi(s, 0, 16);
+						my8080.A.data = val;
+						my8080.in = false;
+						break;
+					}
+					default:
+						break;
+				}
 			}
 			commandLine.push_back("$ " + commandPromptEntry->sText);
 			commandPromptEntry->sText = "";
 		}
 
 		//update register views
-		gui->sText = std::format("A: {:#x}\nB: {:#x}\nC: {:#x}\nD: {:#x}\nE: {:#x}\nH: {:#x}\n L: {:#x}", my8080.A.data, my8080.B.data, my8080.C.data, my8080.D.data, my8080.E.data, my8080.L.data, my8080.H.data);
-		flagsBox->sText = std::format("S: {:#x}\nZ: {:#x}\nAC: {:#x}\nP: {:#x}\nC: {:#x}", my8080.getFlagStatus(7), my8080.getFlagStatus(6), my8080.getFlagStatus(4), my8080.getFlagStatus(2), my8080.getFlagStatus(0));
+		gui->sText = std::format("A: {:#x}\nB: {:#x}\nC: {:#x}\nD: {:#x}\nE: {:#x}\nH: {:#x}\n L: {:#x}",
+					my8080.A.data, my8080.B.data, my8080.C.data, my8080.D.data, my8080.E.data, my8080.L.data, my8080.H.data);
+		flagsBox->sText = std::format("S: {:#x}\nZ: {:#x}\nAC: {:#x}\nP: {:#x}\nC: {:#x}",
+					my8080.getFlagStatus(7), my8080.getFlagStatus(6), my8080.getFlagStatus(4), my8080.getFlagStatus(2), my8080.getFlagStatus(0));
 		currentStateBox->sText = std::format("Curr. Instruction: {:#x}\nPC: {:#x}", my8080.mem[my8080.pc], my8080.pc);
 
 		//Drawing area
 		Clear(olc::DARK_GREY);
 		guiManager.DrawDecal(this);
-
+		if (showMemory) {
+			olc::PixelGameEngine::FillRectDecal(memoryF.pos, memoryF.size, olc::DARK_CYAN);
+			showMemManager.DrawDecal(this);
+		}
 		return true;
 	}
 
+
 	//experimental
-	//void getMemoryText() {
-	//	mem.clear();
-	//	std::string s;
-	//	int index = 0;
-	//	for (int i = 0; i < 15; i++) {
-	//		s = "";
-	//		for (int j = 0; j < 15; j++) {
-	//			s += std::format("{:#04x}", my8080.mem[index++]) + "| ";
-	//		}
-	//		mem.push_back(s);
-	//	}
-	//}
+
+	//call before getMemoryText to init the memElements vector
+	void initMemElements(int size) {
+		for (int i = 0; i < size; i++) {
+			memoryF.memElements.push_back(new olc::QuickGUI::Label(showMemManager, "", { 0.0f, 0.0f }, { 0.0f, 0.0f }));
+		}
+	}
+
+	void getMemoryText() {
+		int index = 0;
+		int numberOfElements = 16;
+
+		olc::vu2d size = { 35, 35 };
+		olc::vu2d pos = { 25, 25 };
+		olc::vu2d rectSize = { numberOfElements * size.x, numberOfElements * size.y };
+		memoryF.pos = pos;
+		memoryF.size = rectSize;
+
+		olc::vu2d elemPos = { 0, 0 };
+		std::string s = "";
+		for (int i = 0; i < numberOfElements; i++) {
+			for (int j = 0; j < numberOfElements; j++) {
+				elemPos.x = pos.x + (size.x * j);
+				elemPos.y = pos.y + (size.y * i);
+				s = std::format("{:#04x}", my8080.mem[index]);
+
+				memoryF.memElements.at(index)->sText = s;
+				memoryF.memElements.at(index)->vPos = elemPos;
+				memoryF.memElements.at(index)->vSize = size;
+				index++;
+			}
+		}
+		int x = 5;
+	} //end getMemoryText
+
 };
 
-
+//fix mouse in gui for the listbox 
 
 int main()
 {
 	olcDemo_QuickGUI  c8080viewWindow;
 	bool windowCreated = c8080viewWindow.Construct(800, 600, 1, 1);
 	std::thread t1(&processorCycle);
-	//std::thread(olcDemo_QuickGUI::OnUserUpdate, 1);
-   // std::string program = "2123000E0ECD09007679FE00CA22007EFE61DA1D00FE7BD21D00D62077230DC30900C96865"; //capitalize
-   // std::string program = "110E0021130006000E05CD1D007611223344550000000000000000000078B1C81A7713230B78B1C22000C9"; //memcpy
-    //std::string program = "3E41D30076"; //output test
-   // std::string program = "3E1EDB0047DB0080D30076"; //test i/o add function
-   // std::string program = "DB004F79D3000DFE00CA0F00C3030076"; //test loop output
-    // std::string program = "DB00CD0800C30000D300C9D301C9D302C9"; //os test
-   //load program into memory
-
 	c8080viewWindow.Start();
 }

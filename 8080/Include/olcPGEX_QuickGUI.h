@@ -331,7 +331,7 @@ namespace olc::QuickGUI
 		olc::vf2d vPos;
 		// Size of list
 		olc::vf2d vSize;
-		//Go from new to old(false) or from old to new(true)
+		//Go from top to bottom(false) or from bottom to top(true)
 		bool bInvert;
 		// Show a border?
 		bool bHasBorder = true;
@@ -981,7 +981,6 @@ namespace olc::QuickGUI
 		vPos = pos;
 		vSize = size;
 		bInvert = invert;
-		//added size.y to the slider
 		float yValueMin, yValueMax;
 		double sliderMaxVal, sliderInitVal;
 		if (bInvert) {
@@ -1012,8 +1011,9 @@ namespace olc::QuickGUI
 		{
 			if (vMouse.x >= 0 && vMouse.x < vSize.x - (m_group.fGrabRad * 2) && vMouse.y >= 0 && vMouse.y < vSize.y)
 			{
-
-				nSelectedItem = size_t(m_pSlider->fValue + vMouse.y / 10);
+				float sliderOffSet = (bInvert) ? m_pSlider->fValue : m_pSlider->fValue;
+				float mouseYPosAdjusted = (bInvert) ? ((m_pSlider->vPosMin.y - 25) - vMouse.y) / 10 : (vMouse.y / 10);
+				nSelectedItem = size_t(mouseYPosAdjusted + sliderOffSet);
 			}
 		}
 

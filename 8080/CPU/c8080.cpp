@@ -195,6 +195,7 @@ int c8080::cycle()
     {
         //NOTE: this may not be the correct implementation...although this follows the steps laid out in
         //the 8080 manual. 
+        //the 8080 manual. 
         //Although, it should be noted this code produces the same output as the manuals example. 
         if (((A.data & 0x0F) > 9) || (getFlagStatus(4))) {
             setACFlag(A.data, 6, 0, ADD);

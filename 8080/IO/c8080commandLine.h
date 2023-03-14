@@ -1,5 +1,7 @@
 #pragma once
-#include "c8080ioDevice.h"
+#include "..\Debugger\DebuggerC8080.h"
+#include "..\IO\c8080commandLine.h"
+#include "..\IO\c8080ioDevice.h"
 #include <iostream>
 #include <format>
 

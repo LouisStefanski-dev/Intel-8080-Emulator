@@ -18,42 +18,42 @@
     <ClCompile Include="8080.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="c8080.cpp">
+    <ClCompile Include="CPU\c8080.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DebuggerC8080.cpp">
+    <ClCompile Include="Debugger\DebuggerC8080.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="c8080ioDevice.cpp">
+    <ClCompile Include="IO\c8080ioHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="c8080commandLine.cpp">
+    <ClCompile Include="IO\c8080commandLine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="c8080ioHandler.cpp">
+    <ClCompile Include="IO\c8080ioDevice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="c8080.h">
+    <ClInclude Include="CPU\c8080.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DebuggerC8080.h">
+    <ClInclude Include="Debugger\DebuggerC8080.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="c8080ioDevice.h">
+    <ClInclude Include="Include\olcPGEX_QuickGUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="c8080commandLine.h">
+    <ClInclude Include="Include\olcPixelGameEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="c8080ioHandler.h">
+    <ClInclude Include="IO\c8080ioHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="olcPGEX_QuickGUI.h">
+    <ClInclude Include="IO\c8080commandLine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="olcPixelGameEngine.h">
+    <ClInclude Include="IO\c8080ioDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

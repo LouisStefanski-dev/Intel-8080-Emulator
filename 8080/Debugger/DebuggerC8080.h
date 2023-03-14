@@ -1,5 +1,5 @@
 #pragma once
-#include "c8080.h"
+#include "..\CPU\c8080.h"
 #include <iostream>
 #include <format>
 
