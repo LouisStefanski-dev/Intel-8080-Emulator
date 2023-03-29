@@ -974,7 +974,7 @@ namespace olc::QuickGUI
 #pragma endregion
 
 #pragma region ListBox
-	ListBox::ListBox(olc::QuickGUI::Manager& manager, std::vector<std::string>& vList, const olc::vf2d& pos, const olc::vf2d& size, bool invert)
+	ListBox::ListBox(olc::QuickGUI::Manager& manager, std::vector<std::string>& vList, const olc::vf2d& pos, const olc::vf2d& size, bool invert = false)
 		: BaseControl(manager), m_vList(vList)
 	{
 		m_group.CopyThemeFrom(m_manager);

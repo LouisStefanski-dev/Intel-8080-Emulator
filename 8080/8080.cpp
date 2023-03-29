@@ -24,11 +24,6 @@
 //      *Make switch statement look nicer
 //      2. Look into when carry flag is (actually) set
 //      3. Fix AC flag
-//      4. fix 0x77 and similar mov instructions which mov a value into M
-//      5. Technically and, or, and xor set the carry and ac flags to zero. Maybe implement setting of flags rather than
-//          relying on them being cleared before
-//      6. work on carry flag and ac flag
-//      7. work on removing overloaded version of setCarryFlag(supports dad)
 //      8. Currently using a hack around for when sp wraps from (sp - 1) for sp = 0, since 65535 is not a valid
 //          memory address
 //results in a carry flag when a number is subtracted from itself, maybe do a check for it with an if statement
@@ -234,10 +229,10 @@ public:
 
 		//Drawing area
 		Clear(olc::DARK_GREY);
-		guiManager.DrawDecal(this);
+		guiManager.Draw(this);
 		if (showMemory) {
 			olc::PixelGameEngine::FillRectDecal(memoryF.pos, memoryF.size, olc::DARK_CYAN);
-			showMemManager.DrawDecal(this);
+			showMemManager.Draw(this);
 		}
 		return true;
 	}

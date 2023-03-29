@@ -71,42 +71,42 @@ public:
 
 	int cycle();
 
-	void mov(reg& f, reg& s);
-	void mov(reg& f, uint8_t s);
+	inline void mov(reg& f, reg& s);
+	inline void mov(reg& f, uint8_t s);
 
-	void add(reg& f, reg& s);
-	void add(reg& f, uint8_t s);
+	inline void add(reg& f, reg& s);
+	inline void add(reg& f, uint8_t s);
 
-	void adc(reg& f, reg& s);
-	void adc(reg& f, uint8_t s);
+	inline void adc(reg& f, reg& s);
+	inline void adc(reg& f, uint8_t s);
 
-	void sub(reg& f, reg& s);
-	void sub(reg& f, uint8_t s);
+	inline void sub(reg& f, reg& s);
+	inline void sub(reg& f, uint8_t s);
 
-	void sbb(reg& f, reg& s);
-	void sbb(reg& f, uint8_t s);
+	inline void sbb(reg& f, reg& s);
+	inline void sbb(reg& f, uint8_t s);
 
-	void ana(reg& f, reg& s);
-	void ana(reg& f, uint8_t s);
+	inline void ana(reg& f, reg& s);
+	inline void ana(reg& f, uint8_t s);
 
-	void xra(reg& f, reg& s);
-	void xra(reg& f, uint8_t s);
+	inline void xra(reg& f, reg& s);
+	inline void xra(reg& f, uint8_t s);
 
-	void ora(reg& f, reg& s);
-	void ora(reg& f, uint8_t s);
+	inline void ora(reg& f, reg& s);
+	inline void ora(reg& f, uint8_t s);
 
-	void cmp(reg& f, reg& s);
-	void cmp(reg& f, uint8_t s);
+	inline void cmp(reg& f, reg& s);
+	inline void cmp(reg& f, uint8_t s);
 
-	void inr(reg& f);
-	void dcr(reg& f);
+	inline void inr(reg& f);
+	inline void dcr(reg& f);
 
-	void ret();
-	void jmp();
-	void call();
-	void rst(uint8_t base);
+	inline void ret();
+	inline void jmp();
+	inline void call();
+	inline void rst(uint8_t base);
 
-	void nop();
+	inline void nop();
 
 	int getFlagStatus(int i);
 
@@ -114,11 +114,11 @@ public:
 
 	//flag set functions
 	//All flags that are affected by carry support the inclusion of a carry bit by the uint8_t value c
-	void setZeroFlag(uint8_t f);
-	void setACFlag(uint8_t f, uint8_t s, uint8_t c = 0, operation op = ADD);
-	void setSignFlag(uint8_t f);
-	void setCarryFlag(uint8_t f, uint8_t s, uint8_t c = 0, operation op = ADD);
-	void setParityFlag(uint8_t f);
+	inline void setZeroFlag(uint8_t f);
+	inline void setACFlag(uint8_t f, uint8_t s, uint8_t c = 0, operation op = ADD);
+	inline void setSignFlag(uint8_t f);
+	inline void setCarryFlag(uint8_t f, uint8_t s, uint8_t c = 0, operation op = ADD);
+	inline void setParityFlag(uint8_t f);
 
 	void resetFlags();
 	void reset();
